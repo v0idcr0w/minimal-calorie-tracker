@@ -3,3 +3,4 @@ pub mod meal;
 pub mod daily_log; 
 pub mod food_normalized; 
 pub mod error; 
+pub mod macros_total; 

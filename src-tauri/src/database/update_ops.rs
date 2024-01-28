@@ -2,7 +2,7 @@ use sqlx::SqlitePool;
 use super::super::models::{food::Food, meal::Meal, food_normalized::FoodNormalized, daily_log::DailyLog}; 
 
 impl Food {
-    pub async fn update(&mut self, new_amount: f64) {
+    pub fn update(&mut self, new_amount: f64) {
         // updates the struct instance itself  
         // only allowed to provide the new amount. remaining parts are updated automatically. 
         // updating units requires updating FoodNormalized.  
@@ -25,7 +25,7 @@ impl Food {
 }
 
 impl FoodNormalized {
-    pub async fn update(&mut self, new_food_normalized: FoodNormalized) {
+    pub fn update(&mut self, new_food_normalized: FoodNormalized) {
         // new_food_normalized ceases to exist after this block ends (move) 
         self.name = new_food_normalized.name; 
         self.unit = new_food_normalized.unit; 
@@ -47,7 +47,7 @@ impl FoodNormalized {
 }
 
 impl Meal {
-    pub async fn update(&mut self, new_type: String) {
+    pub fn update(&mut self, new_type: String) {
         self.meal_type = new_type; 
     }
     pub async fn update_entry(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
@@ -62,7 +62,7 @@ impl Meal {
 }
 
 impl DailyLog {
-    pub async fn update(&mut self, new_weight: f64) {
+    pub fn update(&mut self, new_weight: f64) {
         // only weight can suffer changes. 
         self.weight = new_weight; 
     }

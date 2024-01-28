@@ -3,7 +3,7 @@ use serde::Serialize;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Database Error")]
+    #[error("Database Error: {0}")]
     DatabaseError(#[from] sqlx::Error)
 }
 

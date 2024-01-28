@@ -37,23 +37,39 @@ impl FoodNormalized {
 }
 
 impl Meal {
-    pub async fn create_entry(&mut self, pool: &SqlitePool, food_ids: &[i32]) -> Result<(), sqlx::Error> {
+    pub async fn create_entry(&mut self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
         self.meal_type = self.meal_type.to_lowercase(); 
-        // create entries associated with a given meal id and various foods ids 
+        // creates a meal entry without any foods associated
         let result = sqlx::query!("INSERT INTO meals (meal_type) VALUES (?)",
         self.meal_type)
         .execute(pool)
         .await?;
 
-        self.id = result.last_insert_rowid() as i32; 
-        
-        // add the ids to the join table 
+        self.id = result.last_insert_rowid() as i32;
+
+        Ok(())
+    }
+    pub async fn associate_food(pool: &SqlitePool, meal_id: i32, food_id: i32) -> Result<(), sqlx::Error> {
+        sqlx::query!("INSERT INTO meals_foods (meal_id, food_id) VALUES (?, ?)", meal_id, food_id)
+            .execute(pool)
+            .await?; 
+        Ok(())
+    }
+    pub async fn associate_foods(&self, pool: &SqlitePool, food_ids: &[i32]) -> Result<(), sqlx::Error>  {
         for &food_id in food_ids {
             sqlx::query!("INSERT INTO meals_foods (meal_id, food_id) VALUES (?, ?)", self.id, food_id)
             .execute(pool)
             .await?; 
         }
-
+        Ok(())
+    }
+    pub async fn create_entry_with_foods(&mut self, pool: &SqlitePool, food_ids: &[i32]) -> Result<(), sqlx::Error> {
+         // creates a meal entry
+        self.create_entry(&pool).await?; 
+        
+        // add the ids to the join table 
+        self.associate_foods(&pool, food_ids).await?; 
+        
         println!("[INFO] Inserted new entry"); 
         Ok(())
     }   

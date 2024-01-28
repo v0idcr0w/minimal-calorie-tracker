@@ -1,19 +1,6 @@
 use sqlx::SqlitePool; 
-use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog}; 
+use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog, macros_total::MacrosTotal}; 
 
-#[derive(Debug)]
-pub struct MacrosTotal {
-    pub protein: f64, 
-    pub carbohydrate: f64, 
-    pub fat: f64, 
-    pub calories: f64
-}
-
-impl MacrosTotal {
-    pub fn new(protein: f64, carbohydrate: f64, fat: f64, calories: f64) -> Self {
-        Self { protein, carbohydrate, fat, calories }
-    }
-}
 
 pub async fn compute_meal_total(meal_id: i32, pool: &SqlitePool) -> MacrosTotal {
     let foods: Vec<Food> = Meal::get_foods_by_id(meal_id, &pool).await.unwrap(); 

@@ -1,7 +1,7 @@
 use sqlx::FromRow; 
-use serde::Serialize; 
+use serde::{Serialize, Deserialize}; 
 use super::food_normalized::FoodNormalized; 
-#[derive(Debug, Serialize, PartialEq, FromRow)] 
+#[derive(Debug, Serialize, Deserialize, PartialEq, FromRow)] 
 pub struct Food {
    pub id: i32, 
    pub foods_normalized_id: i32, 
