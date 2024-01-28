@@ -1,7 +1,7 @@
 use sqlx::FromRow; 
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Serialize, PartialEq, FromRow)] 
+#[derive(Debug, Serialize, Deserialize, PartialEq, FromRow)] 
 pub struct Meal {
     pub id: i32, 
     pub meal_type: String, 

@@ -1,5 +1,6 @@
 use sqlx::SqlitePool;
 use sqlx::types::chrono;
+use crate::models::food;
 use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog}; 
 use crate::utils::calc; 
 
@@ -34,13 +35,25 @@ async fn test_create_food_normalized(pool: SqlitePool) -> sqlx::Result<()> {
     Ok(())
 }
 
+#[sqlx::test(fixtures("init_tables", "prepopulate"))]
+async fn test_create_meal_no_foods(pool: SqlitePool) -> sqlx::Result<()> {
+    let mut breakfast = Meal::new(0, "Breakfast".to_string()); 
+
+    breakfast.create_entry(&pool).await?; 
+    let breakfast_from_db = Meal::get_by_id(1, &pool).await?; 
+
+    assert_eq!(breakfast, breakfast_from_db); 
+
+    Ok(())
+}
+
 #[sqlx::test(fixtures("init_tables", "prepopulate", "foods"))]
 async fn test_create_meal(pool: SqlitePool) -> sqlx::Result<()> {
     let mut breakfast = Meal::new(0, "breakfast".to_string()); 
 
     let food_ids = [1, 2]; 
 
-    breakfast.create_entry(&pool, &food_ids).await?; 
+    breakfast.create_entry_with_foods(&pool, &food_ids).await?; 
 
     let foods_from_meal_id = Meal::get_foods_by_id(breakfast.id, &pool).await.unwrap(); 
 
@@ -51,6 +64,21 @@ async fn test_create_meal(pool: SqlitePool) -> sqlx::Result<()> {
 
 }
 
+#[sqlx::test(fixtures("init_tables", "prepopulate", "foods"))]
+async fn test_create_meal_associate_foods(pool: SqlitePool) -> sqlx::Result<()> {
+    let mut breakfast = Meal::new(0, "breakfast".to_string()); 
+    breakfast.create_entry(&pool).await?; 
+    let food_ids = [1, 2]; 
+    breakfast.associate_foods(&pool, &food_ids).await?; 
+
+    let foods_from_meal_id = Meal::get_foods_by_id(breakfast.id, &pool).await.unwrap(); 
+
+    assert_eq!(foods_from_meal_id[0].id, food_ids[0]); 
+    assert_eq!(foods_from_meal_id[1].id, food_ids[1]); 
+    
+
+    Ok(())
+}
  
 #[sqlx::test(fixtures("init_tables", "prepopulate", "foods", "meals"))]
 async fn test_create_daily_log(pool: SqlitePool) -> sqlx::Result<()> {
