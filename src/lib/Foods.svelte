@@ -44,11 +44,16 @@
 <div>
       {#each $foodsNormalized as foodNormalized, index (foodNormalized.id)}
     <div>
+      {#if !editableArray[index]}
+      <h3>{toTitleCase(foodNormalized.name)} </h3>
+      {:else}
+      <input name="name" type="text" bind:value={updatedFood.name} />
+      <br />
+      {/if}
       <button on:click={() => enableEditing(index, foodNormalized) }>{ editableArray[index] ? "Revert Changes" : "Edit"}</button> 
       <button on:click={() => deleteFood(foodNormalized)}>Delete</button> 
       
         {#if !editableArray[index]}
-        <h3>{toTitleCase(foodNormalized.name)} </h3>
         <li>Serving Size: {foodNormalized.serving_size} {foodNormalized.unit} </li>
         <li>Calories: {foodNormalized.normalized_calories} kcal</li>
         <li>Protein: {foodNormalized.normalized_protein} g</li>
@@ -56,7 +61,7 @@
         <li>Fats: {foodNormalized.normalized_fat} g</li>
 
         {:else}
-        <h3 contenteditable="true" bind:textContent={updatedFood.name}>{toTitleCase(updatedFood.name)}</h3>
+
         <li>Serving Size:  
           <input name="serving_size" type="number" min=0 bind:value={updatedFood.serving_size} />
           <input name="unit" bind:value={updatedFood.unit} placeholder="Unit" />
