@@ -1,6 +1,2 @@
-<script>
-    import Foods from '../lib/Foods.svelte'
-  </script>
-  
-<h1>Minimal Calorie and Macronutrient Tracker</h1>
-<Foods />
+<h1>Home</h1>
+<h3>Your goal is ...</h3>

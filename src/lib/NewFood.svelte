@@ -118,10 +118,3 @@
 
     {/if}
 </div>
-
-<style>
-    .error {
-      color: red;
-      margin-top: 0.2rem;
-    }
-  </style>
