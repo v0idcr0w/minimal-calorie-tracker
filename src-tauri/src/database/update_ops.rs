@@ -47,12 +47,12 @@ impl FoodNormalized {
 }
 
 impl Meal {
-    pub fn update(&mut self, new_type: String) {
-        self.meal_type = new_type; 
+    pub fn update_name(&mut self, new_name: String) {
+        self.name = new_name.to_lowercase(); 
     }
     pub async fn update_entry(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
         // updates only the meal type name. other updates are made through the food table. 
-        sqlx::query!("UPDATE meals SET meal_type = ? WHERE id = ?", self.meal_type, self.id)
+        sqlx::query!("UPDATE meals SET name = ? WHERE id = ?", self.name, self.id)
         .execute(pool)
         .await?;    
 
@@ -62,11 +62,15 @@ impl Meal {
 }
 
 impl DailyLog {
-    pub fn update(&mut self, new_weight: f64) {
-        // only weight can suffer changes. 
-        self.weight = new_weight; 
-    }
     pub async fn update_entry(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        sqlx::query!("UPDATE daily_logs SET total_calories = ?, total_protein = ?, total_carbohydrate = ?, total_fat = ? WHERE id = ?", self.total_calories, self.total_protein, self.total_carbohydrate, self.total_fat, self.id)
+        .execute(pool)
+        .await?;        
+
+        println!("[INFO] Updated entry with id = {}", self.id); 
+        Ok(())
+    }
+    pub async fn update_weight(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
         sqlx::query!("UPDATE daily_logs SET weight = ? WHERE id = ?", self.weight, self.id)
         .execute(pool)
         .await?;        

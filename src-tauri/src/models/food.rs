@@ -5,6 +5,7 @@ use super::food_normalized::FoodNormalized;
 pub struct Food {
    pub id: i32, 
    pub foods_normalized_id: i32, 
+   pub meal_id: i32, 
    pub name: String, 
    pub unit: String,
    pub amount: f64, 
@@ -15,16 +16,17 @@ pub struct Food {
 }
 
 impl Food {
-    pub fn new(id: i32, foods_normalized_id: i32, name: String, unit: String, amount: f64, protein: f64, carbohydrate: f64, fat: f64, calories: f64) -> Self {
-        Self { id, foods_normalized_id, name, unit, amount, protein, carbohydrate, fat, calories } 
+    pub fn new(id: i32, foods_normalized_id: i32, meal_id: i32, name: String, unit: String, amount: f64, protein: f64, carbohydrate: f64, fat: f64, calories: f64) -> Self {
+        Self { id, foods_normalized_id, meal_id, name, unit, amount, protein, carbohydrate, fat, calories } 
     }
 
-    pub fn from(food_normalized: FoodNormalized, amount: f64) -> Self {
+    pub fn from(food_normalized: FoodNormalized, meal_id: i32, amount: f64) -> Self {
         // initializes a new instance of Food by taking some amount and multiplying macros by the correct value 
         let multiplier = amount / food_normalized.serving_size; 
         Self { 
             id: 0, // set id to zero 
             foods_normalized_id: food_normalized.id, 
+            meal_id,
             name: food_normalized.name, 
             unit: food_normalized.unit, 
             amount, 

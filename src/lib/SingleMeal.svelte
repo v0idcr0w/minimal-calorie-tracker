@@ -15,7 +15,6 @@
         foods = await invoke('get_foods_by_meal_id', { mealId }); 
         computedMacros = await invoke('compute_meal_macros', { mealId }); 
         editableArray = Array.from({ length: foods.length }, () => false);
-        
     }
 
     onMount(async () => {
@@ -30,12 +29,17 @@
     async function deleteFood(food) {
         await invoke('delete_food', { food });
         await refreshFoods();  
+        // create an event dispatch
+        const event = new CustomEvent('foodModified'); 
+        dispatchEvent(event); 
     }
 
     async function updateFood(food, newAmount) {
         if (newAmount >= 0) {
             await invoke('update_food', { food, newAmount })
             await refreshFoods(); 
+            const event = new CustomEvent('foodModified'); 
+            dispatchEvent(event);  
         } else {
             validationError = "Amount must be greater than 0"; 
         }
