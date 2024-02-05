@@ -57,3 +57,5 @@ CREATE TABLE foods (
     FOREIGN KEY (foods_normalized_id) REFERENCES foods_normalized(id) ON DELETE CASCADE, 
     FOREIGN KEY (meal_id) REFERENCES meals(id) ON DELETE CASCADE
 );
+
+

@@ -1,3 +1,4 @@
+-- Add migration script here
 DROP TABLE IF EXISTS foods_normalized; 
 DROP TABLE IF EXISTS foods;
 DROP TABLE IF EXISTS meals;

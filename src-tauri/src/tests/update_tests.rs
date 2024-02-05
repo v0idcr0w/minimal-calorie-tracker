@@ -3,7 +3,7 @@ use sqlx::types::chrono;
 use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog}; 
 use crate::utils::calc;  
 
-#[sqlx::test(fixtures("init_tables", "prepopulate"))]  
+#[sqlx::test(fixtures("init", "populate_normalized"))]
 async fn test_edit_food_normalized(pool: SqlitePool) -> sqlx::Result<()> {
     let mut query = FoodNormalized::get_by_id(2, &pool).await?; 
 
@@ -20,7 +20,7 @@ async fn test_edit_food_normalized(pool: SqlitePool) -> sqlx::Result<()> {
     Ok(())
 }
 
-#[sqlx::test(fixtures("init_tables", "prepopulate", "foods"))] 
+#[sqlx::test(fixtures("init", "populate_normalized", "populate_meals", "populate_foods"))]
 async fn test_edit_food(pool: SqlitePool) -> sqlx::Result<()> {
     let mut food = Food::get_by_id(1, &pool).await?;  
 
@@ -35,26 +35,37 @@ async fn test_edit_food(pool: SqlitePool) -> sqlx::Result<()> {
     Ok(())
 }
 
-#[sqlx::test(fixtures("init_tables", "prepopulate", "foods", "meals"))] 
+#[sqlx::test(fixtures("init", "populate_normalized", "populate_meals", "populate_foods"))]
 async fn test_edit_meal(pool: SqlitePool) -> sqlx::Result<()> {
     let mut meal = Meal::get_by_id(1, &pool).await?; 
-    meal.update("lunch".to_string()); 
+    meal.update_name("lunch".to_string()); 
     meal.update_entry(&pool).await?; 
     let meal_from_db = Meal::get_by_id(1, &pool).await?; 
     assert_eq!(meal, meal_from_db); 
     Ok(())
 }
 
-#[sqlx::test(fixtures("init_tables", "prepopulate", "foods", "meals"))] 
-async fn test_edit_daily_log(pool: SqlitePool) -> sqlx::Result<()> {
+#[sqlx::test(fixtures("init", "populate_normalized", "populate_meals", "populate_foods"))]
+async fn test_edit_daily_log_weight(pool: SqlitePool) -> sqlx::Result<()> {
+
+    let mut log = DailyLog::get_by_id(1, &pool).await?; 
+    log.weight = 55.5; // change weight
+    log.update_weight(&pool).await?; 
+
+    let log_from_db = DailyLog::get_by_id(1, &pool).await?; 
+
+    assert_eq!(log, log_from_db); 
+
+    Ok(())
+}
+
+#[sqlx::test(fixtures("init", "populate_normalized", "populate_meals", "populate_foods"))]
+async fn test_edit_daily_log_calories(pool: SqlitePool) -> sqlx::Result<()> {
     let total_macros = calc::compute_daily_totals(&[1, 2], &pool).await;
 
-    let now = chrono::Local::now().naive_local(); 
+    let mut daily_log = DailyLog::get_by_id(1, &pool).await?;
 
-    let mut daily_log = DailyLog::new(0, 59.6, total_macros.protein, total_macros.carbohydrate, total_macros.fat, total_macros.calories, now); 
-
-    daily_log.create_entry(&pool).await?; 
-    daily_log.update(55.5); 
+    daily_log.update_macros(total_macros); 
     daily_log.update_entry(&pool).await?; 
 
     let log_from_db = DailyLog::get_by_id(1, &pool).await?; 
