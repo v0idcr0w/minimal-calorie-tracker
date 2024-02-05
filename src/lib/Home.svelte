@@ -8,7 +8,7 @@
     let todaysLog = {}; 
 
     async function getOrCreateTodaysLog() {
-        todaysLog = await invoke('get_todays_log'); 
+        todaysLog = await invoke('get_todays_log');  
         weight = todaysLog.weight; 
         logId.set(todaysLog.id); 
     }
@@ -17,6 +17,7 @@
         if (validateInput(weight)) {
             await invoke('weight_in', { logId: $logId, weight });
             todaysLog.weight = weight;
+            editWeight = false; 
         }  
     }
 
@@ -36,11 +37,11 @@
 
 <h3>Weight-in for {$today.toISOString().split('T')[0]}:</h3> 
 
-{#if weight > 0}
+{#if todaysLog.weight > 0}
     Your weight today is: {todaysLog.weight} kg
     <button on:click={() => editWeight = !editWeight}>{!editWeight ? "Edit" : "Cancel"}</button>
 {/if} 
-{#if weight <= 0 || editWeight}
+{#if todaysLog.weight <= 0 || editWeight}
     <p>Enter new weight:</p>
     <input type="number" name="weight" min=0 max=999 bind:value={weight} style="width: 60px;" /> kg
     <button on:click={addWeight(weight)}>Ok</button>

@@ -1,5 +1,5 @@
 use sqlx::SqlitePool;
-use super::super::models::{food::Food, meal::Meal, food_normalized::FoodNormalized, daily_log::DailyLog}; 
+use super::super::models::{food::Food, meal::Meal, food_normalized::FoodNormalized, daily_log::DailyLog, ingredient::Ingredient, recipe::Recipe}; 
 
 impl FoodNormalized {
     pub async fn create_entry(&mut self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
@@ -58,6 +58,36 @@ impl DailyLog {
         self.weight, self.total_protein, self.total_carbohydrate, self.total_fat, self.total_calories, self.entry_date)
         .execute(pool)
         .await?;        
+
+        self.id = result.last_insert_rowid() as i32; 
+
+        println!("[INFO] Inserted new entry"); 
+        Ok(())
+    }
+}
+
+impl Recipe {
+    pub async fn create_entry(&mut self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        self.name = self.name.to_lowercase(); 
+        let result = sqlx::query!("INSERT INTO recipes (name, serving_size, unit, protein, carbohydrate, fat, calories) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        self.name, self.serving_size, self.unit, self.protein, self.carbohydrate, self.fat, self.calories)
+        .execute(pool)
+        .await?;
+
+        self.id = result.last_insert_rowid() as i32; 
+
+        println!("[INFO] Inserted new entry"); 
+        Ok(())
+    }
+}
+
+impl Ingredient {
+    pub async fn create_entry(&mut self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        self.name = self.name.to_lowercase(); 
+        let result = sqlx::query!("INSERT INTO ingredients (recipe_id, food_normalized_id, name, amount, unit, protein, carbohydrate, fat, calories) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        self.recipe_id, self.food_normalized_id, self.name, self.amount, self.unit, self.protein, self.carbohydrate, self.fat, self.calories)
+        .execute(pool)
+        .await?;
 
         self.id = result.last_insert_rowid() as i32; 
 

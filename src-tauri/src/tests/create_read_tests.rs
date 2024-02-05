@@ -69,6 +69,19 @@ async fn test_create_daily_log(pool: SqlitePool) -> sqlx::Result<()> {
     Ok(())
 }
 
+
+#[sqlx::test(fixtures("init", "populate_normalized", "populate_meals", "populate_foods"))]
+async fn test_get_meals_by_date(pool: SqlitePool) -> sqlx::Result<()> {
+    let total_meals = Meal::get_all(&pool).await?.len();
+    let today = chrono::Local::now().date_naive(); 
+    let meals = Meal::get_by_date(today, &pool).await?; 
+
+    assert_eq!(meals.len(), total_meals); 
+
+    Ok(())
+
+}
+
 #[sqlx::test(fixtures("init", "populate_normalized", "populate_meals", "populate_foods"))]
 async fn test_get_daily_log_by_date(pool: SqlitePool) -> sqlx::Result<()> {
     let tomorrow = chrono::Local::now().date_naive() + Duration::days(1); 
@@ -79,5 +92,14 @@ async fn test_get_daily_log_by_date(pool: SqlitePool) -> sqlx::Result<()> {
  
     assert_eq!(daily_log, daily_log_from_db); 
 
+    Ok(())
+}
+
+#[sqlx::test(fixtures("init", "populate_normalized", "populate_meals", "populate_foods"))]
+async fn test_get_meals_by_log_id(pool: SqlitePool) -> sqlx::Result<()> {
+    let total_meals = Meal::get_all(&pool).await?.len(); 
+    let meals = Meal::get_by_log_id(1, &pool).await?; 
+
+    assert_eq!(meals.len(), total_meals); 
     Ok(())
 }
