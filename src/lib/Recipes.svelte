@@ -1,15 +1,13 @@
 <script>
     import { invoke } from "@tauri-apps/api";
     import { onMount } from "svelte";
-    import { logId, foodsNormalized } from './store.js';
+    import { logId, foodsNormalized, recipes } from './store.js';
     import SingleRecipe from "./SingleRecipe.svelte";
 
     let newRecipe = {name: '', serving_size: 0.0, unit: ''}; 
     let newRecipeActive = false; 
     // Check if the new recipe box is properly filled 
     $: inputsFilled = newRecipe.name !== "" && newRecipe.serving_size >= 0.0 && newRecipe.unit !== "";
-    // stores all recipes
-    let recipes = []; 
     
     onMount(async () => {
         if ($foodsNormalized.length === 0) {
@@ -32,9 +30,9 @@
     }
 
     async function getAllRecipes() {
-        recipes = await invoke('get_all_recipes');
+        recipes.set(await invoke('get_all_recipes'));
         // sort by descending order of id 
-        recipes.sort((a, b) => b.id - a.id); 
+        $recipes.sort((a, b) => b.id - a.id); 
     }
 
     async function deleteRecipe(recipeId) {
@@ -58,7 +56,7 @@
 {/if}
 
 <!-- Rendering all recipes below -->
-{#each recipes as recipe (recipe.id)}
+{#each $recipes as recipe (recipe.id)}
 <div>
     <SingleRecipe recipe={recipe} onDelete={() => deleteRecipe(recipe.id)} />
 </div>

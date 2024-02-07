@@ -9,7 +9,6 @@ mod database;
 mod utils; 
 mod tests; 
 
-use models::food;
 use sqlx::SqlitePool; 
 use chrono::Local; 
 use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog, error::Error, macros_total::MacrosTotal, recipe::Recipe, ingredient::Ingredient}; 
@@ -36,6 +35,7 @@ async fn main() -> Result<(), sqlx::Error> {
       add_new_meal,
       delete_meal,
       add_new_food,
+      add_new_food_from_recipe,
       delete_food,
       update_food,
       compute_meal_macros,
@@ -106,7 +106,7 @@ async fn get_meals_by_log_id(log_id: i32, pool: tauri::State<'_,Database>) -> Re
 
 #[tauri::command]
 async fn get_foods_by_meal_id(meal_id: i32, pool: tauri::State<'_,Database>) -> Result<Vec<Food>, Error> {
-  let result = Meal::get_foods_by_id(meal_id, &pool.0).await?; 
+  let result = Food::get_by_meal_id(meal_id, &pool.0).await?; 
   Ok(result) 
 }
 
@@ -128,7 +128,19 @@ async fn add_new_food(selected_id: i32, amount: f64, meal_id: i32, pool: tauri::
   // query db for food normalized with the selected id
   let food_normalized = FoodNormalized::get_by_id(selected_id, &pool.0).await?; 
   // create food obj
-  let mut food = Food::from(food_normalized, meal_id, amount); 
+  let mut food = Food::from_food_normalized(food_normalized, meal_id, amount); 
+  // add to db 
+  food.create_entry(&pool.0).await?; 
+
+  Ok(())
+}
+
+#[tauri::command]
+async fn add_new_food_from_recipe(selected_id: i32, amount: f64, meal_id: i32, pool: tauri::State<'_,Database>) -> Result<(), Error> {
+  // query db for recipe 
+  let recipe = Recipe::get_by_id(selected_id, &pool.0).await?; 
+  // create food obj
+  let mut food = Food::from_recipe(recipe, meal_id, amount); 
   // add to db 
   food.create_entry(&pool.0).await?; 
 

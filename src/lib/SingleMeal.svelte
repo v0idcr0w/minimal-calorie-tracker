@@ -1,8 +1,9 @@
 <script>
     // this part contains the logic related to rendering foods, editing and deleting a food from a given meal. 
     import { invoke } from "@tauri-apps/api";
-    import { onMount, onDestroy } from "svelte";
+    import { onMount } from "svelte";
     import { toTitleCase } from "./titleCase";
+    import { foodsNormalized, recipes } from './store.js';
     import Dropdown from "./Dropdown.svelte";
 
     // props 
@@ -16,7 +17,8 @@
     let computedMacros = {}; 
 
     // button control
-    let dropdownActive = false; 
+    let dropdownActiveFood = false; 
+    let dropdownActiveRecipe = false; 
 
     async function refreshFoods() {
         foods = await invoke('get_foods_by_meal_id', { mealId }); 
@@ -26,6 +28,12 @@
     }
 
     onMount(async () => {
+        if ($foodsNormalized.length === 0) {
+            foodsNormalized.set(await invoke('get_foods')); 
+        }
+        if ($recipes.length === 0) {
+            recipes.set(await invoke('get_recipes'));
+        }
         await refreshFoods();  
     }); 
 
@@ -46,7 +54,14 @@
         // dispatch this event when a new food gets added
         await refreshFoods();  
         await onUpdate(); 
-        dropdownActive = false; 
+        dropdownActiveFood = false; 
+    }
+
+    async function addNewRecipe(selectedId, amount) {
+        await invoke('add_new_food_from_recipe', { selectedId, amount, mealId })
+        await refreshFoods();  
+        await onUpdate(); 
+        dropdownActiveRecipe = false; 
     }
 </script>
 
@@ -82,9 +97,16 @@
 
 
 <!-- Dropdown button for foods list -->
-<button on:click={() => dropdownActive = !dropdownActive}>{dropdownActive ? "Cancel" : "+"}</button>
-{#if dropdownActive}
-    <Dropdown onAdd={addNewFood} />
+<button on:click={() => dropdownActiveFood = !dropdownActiveFood}>{dropdownActiveFood ? "Cancel" : "+ Food"}</button>
+{#if dropdownActiveFood}
+    <Dropdown onAdd={addNewFood} options={$foodsNormalized} />
+{/if}
+
+<br />
+<!-- Dropdown button for recipe list -->
+<button on:click={() => dropdownActiveRecipe = !dropdownActiveRecipe}>{dropdownActiveRecipe ? "Cancel" : "+ Recipe"}</button>
+{#if dropdownActiveRecipe}
+    <Dropdown onAdd={addNewRecipe} options={$recipes} />
 {/if}
 
 

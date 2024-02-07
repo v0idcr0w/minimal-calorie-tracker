@@ -17,6 +17,7 @@
         meals = await invoke('get_meals_by_log_id', { logId: $logId });
         meals.sort((a, b) => new Date(b.entry_timestamp) - new Date(a.entry_timestamp));
         mealIds = meals.map((obj) => obj.id); 
+        newMeal = {id: 0, log_id: $logId, name: '', entry_timestamp: ''};
     }
 
     async function updateTotals() {

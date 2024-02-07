@@ -35,22 +35,21 @@ impl Food {
         Ok(food_list)
     }
 
+    pub async fn get_by_meal_id(meal_id: i32, pool: &SqlitePool) -> Result<Vec<Self>, sqlx::Error> {
+        let foods = query_as::<_, Self>("SELECT * FROM foods WHERE meal_id = ?")
+        .bind(meal_id)
+        .fetch_all(pool)
+        .await?;
+        Ok(foods)
+    }
+
 }
 
 
 
 
 impl Meal {
-    pub async fn get_foods_by_id(pk: i32, pool: &SqlitePool) -> Result<Vec<Food>, sqlx::Error> {
-        // Gets all of the foods associated to a given meal_id. 
-        let foods = query_as::<_, Food>("SELECT * FROM foods WHERE meal_id = ?")
-        .bind(pk)
-        .fetch_all(pool)
-        .await?;
-        
-        Ok(foods)
-    }
-    
+
     pub async fn get_by_log_id(log_id: i32, pool: &SqlitePool) -> Result<Vec<Self>, sqlx::Error> {
         let meals = query_as::<_, Self>("SELECT * FROM meals WHERE log_id = ?")
         .bind(log_id)

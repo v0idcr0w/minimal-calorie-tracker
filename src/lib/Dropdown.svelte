@@ -1,26 +1,13 @@
 <script>
-    import { invoke } from "@tauri-apps/api";
-    import { onMount } from "svelte";
-    import { foodsNormalized } from "./store";
-
-    // props
-    // export let mealId;  
     export let onAdd; 
-
-    // check if foodsNormalized is empty 
-    onMount(async () => {
-        // this element is responsible only for rendering the dropdown for meals. no need to query the database again. 
-        if ($foodsNormalized.length === 0) {
-            foodsNormalized.set(await invoke('get_foods_normalized')); 
-        }
-    });
+    export let options; 
 
     let selectedFood = {}; 
     let amount;
 
     function handleSelect(event) {
         const selectedId = event.target.value; // value is a string 
-        const food = $foodsNormalized.find((item) => item.id == selectedId); 
+        const food = options.find((item) => item.id == selectedId); 
         selectedFood = food; 
     }
 
@@ -30,8 +17,8 @@
 <select id="foodDropdown" on:change={handleSelect}>
 <!-- first option is blank and unselectable -->
 <option value="" disabled selected hidden></option>
-{#each $foodsNormalized as foodNormalized (foodNormalized.id)}
-    <option value={foodNormalized.id}>{foodNormalized.name}</option>
+{#each options as option (option.id)}
+    <option value={option.id}>{option.name}</option>
 {/each}
 </select>
 

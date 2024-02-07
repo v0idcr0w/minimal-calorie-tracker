@@ -3,7 +3,6 @@ use super::super::models::{food::Food, meal::Meal, food_normalized::FoodNormaliz
 
 impl FoodNormalized {
     pub async fn create_entry(&mut self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
-        // example usage: create Food::new() with dummy ids, turn into FoodNormalize via the from method, then use create entry method to add to the database. 
         self.name = self.name.to_lowercase(); // ensure this is lowercase 
         let result = sqlx::query!("INSERT INTO foods_normalized (name, unit, serving_size, normalized_protein, normalized_carbohydrate, normalized_fat, normalized_calories) VALUES (?, ?, ?, ?, ?, ?, ?)",
         self.name, self.unit, self.serving_size, self.normalized_protein, self.normalized_carbohydrate, self.normalized_fat, self.normalized_calories)
@@ -20,8 +19,8 @@ impl FoodNormalized {
 impl Food {
     pub async fn create_entry(&mut self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
         self.name = self.name.to_lowercase(); 
-        let result = sqlx::query!("INSERT INTO foods (foods_normalized_id, meal_id, name, unit, amount, protein, carbohydrate, fat, calories) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        self.foods_normalized_id, self.meal_id, self.name, self.unit, self.amount, self.protein, self.carbohydrate, self.fat, self.calories)
+        let result = sqlx::query!("INSERT INTO foods (food_normalized_id, recipe_id, meal_id, name, unit, amount, protein, carbohydrate, fat, calories) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        self.food_normalized_id, self.recipe_id, self.meal_id, self.name, self.unit, self.amount, self.protein, self.carbohydrate, self.fat, self.calories)
         .execute(pool)
         .await?; 
 

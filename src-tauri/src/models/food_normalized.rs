@@ -1,6 +1,6 @@
 use sqlx::FromRow; 
 use serde::{Serialize, Deserialize};
-use super::food::Food; 
+
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, FromRow)] 
 pub struct FoodNormalized {
@@ -20,10 +20,3 @@ impl FoodNormalized {
     }
 }
 
-
-impl From<Food> for FoodNormalized {
-    fn from(food: Food) -> Self {
-        // this implementation assumes amount = serving size 
-        Self {id: food.foods_normalized_id, name: food.name, serving_size: food.amount, unit: food.unit, normalized_protein: food.protein, normalized_carbohydrate: food.carbohydrate, normalized_fat: food.fat, normalized_calories: food.calories}
-    }
-}

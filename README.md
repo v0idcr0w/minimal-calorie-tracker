@@ -14,13 +14,14 @@
 - [OK] When the total daily totals change, this change should be reflected in the database as well 
 - [OK] One daily log is automatically created for today when the user opens the home page, but only if one does not already exist.
 - [OK] Meals should be fetched and displayed by their current date (not all meals!), or by the logId. New meals created should come with the timestamp.  
-- [OK] Redesing the "Foods" tab 
+- [OK] Redesign the "Foods" tab 
 
 ### TODO: FEATURES
 - [OK] Recipes: a recipe is built from a combination of foods from the foods database, like a meal, but you can also query for it when creating a new meal. This table should have no relationship to food_normalized but it should use the data from it to be created.  
-- Enable the possibility of adding recipe under meals. 
-- Goals page -> lose/gain weight; rate of loss/gain per week and a percentage of recommendation; calories goal; macros goal (user can specify it - or this is automatically selected according to the currently available evidence); 
-- Option to import foods from CSV file
-- Option to export foods to CSV file 
-- Graphs (pizza chart showing your current macro split for the day); line chart showing your weight progress (only if there is more than 1 data point). 
+- [OK] Enable the possibility of adding recipe under meals. 
+- Goals: missing fetch from database (also, macronutrients should be automatically calculated based on 2 other macronutrient amount or percentage provided). Protein should be provided as g per kg of bodyweight by default. 
+- Option to import foods & recipes from CSV file. 
+- Option to export foods & recipes to CSV file. 
+- Graphs (pizza chart showing your current macro split for the day); line chart showing your weight progress; and your calories progress (only if there is more than 1 data point). 
+- Compare the users goals with their current progress. 
 

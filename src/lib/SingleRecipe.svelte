@@ -1,7 +1,7 @@
 <script>
     import { invoke } from "@tauri-apps/api";
     import { onMount } from "svelte";
-    import { logId, foodsNormalized } from './store.js';
+    import { foodsNormalized } from './store.js';
     import { toTitleCase } from './titleCase.js';
 
     // props 

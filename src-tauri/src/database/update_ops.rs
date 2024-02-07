@@ -33,7 +33,6 @@ impl FoodNormalized {
     }
     pub fn update(&mut self, new_food_normalized: FoodNormalized) {
         // new_food_normalized ceases to exist after this block ends (move) 
-        self.name = new_food_normalized.name; 
         self.unit = new_food_normalized.unit; 
         self.serving_size = new_food_normalized.serving_size; 
         self.normalized_protein = new_food_normalized.normalized_protein; 

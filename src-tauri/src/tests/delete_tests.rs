@@ -48,13 +48,13 @@ async fn test_delete_food(pool: SqlitePool) -> sqlx::Result<()> {
 
 #[sqlx::test(fixtures("init", "populate_normalized", "populate_meals", "populate_foods"))]
 async fn test_delete_food_after_meals(pool: SqlitePool) -> sqlx::Result<()> {
-    let total_foods_of_meal = Meal::get_foods_by_id(1, &pool).await?.len(); 
+    let total_foods_of_meal = Food::get_by_meal_id(1, &pool).await?.len(); 
 
     let food = Food::get_by_id(1, &pool).await?; 
 
     food.delete_entry(&pool).await?; 
 
-    let foods_remaining = Meal::get_foods_by_id(1, &pool).await?; 
+    let foods_remaining = Food::get_by_meal_id(1, &pool).await?; 
 
     assert_eq!(foods_remaining.len(), total_foods_of_meal-1);  
 

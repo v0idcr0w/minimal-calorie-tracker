@@ -25,7 +25,7 @@ async fn test_create_food(pool: SqlitePool) -> sqlx::Result<()> {
 
     let food_norm = FoodNormalized::get_by_id(2, &pool).await?; 
 
-    let mut food = Food::from(food_norm, 1, 280.0); 
+    let mut food = Food::from_food_normalized(food_norm, 1, 280.0); 
 
     food.create_entry(&pool).await?; 
 
