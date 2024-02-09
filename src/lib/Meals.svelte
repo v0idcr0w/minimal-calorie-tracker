@@ -1,5 +1,6 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri'
+    import { confirm } from '@tauri-apps/api/dialog';
     import { onMount } from 'svelte'
     import { toTitleCase } from './titleCase.js';
     import { dailyTotals, today, logId } from './store.js'; 
@@ -38,6 +39,8 @@
     }
 
     async function deleteMeal(meal) {
+        const confirmed = await confirm('This action cannot be reverted. Are you sure?', { title: 'Confirm', type: 'info' });
+        if (!confirmed) return;
         await invoke('delete_meal', { meal });
         await refreshMeals();
         await updateTotals(); 

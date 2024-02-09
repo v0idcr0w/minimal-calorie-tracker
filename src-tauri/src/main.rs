@@ -11,7 +11,7 @@ mod tests;
 
 use sqlx::SqlitePool; 
 use chrono::Local; 
-use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog, error::Error, macros_total::MacrosTotal, recipe::Recipe, ingredient::Ingredient}; 
+use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog, error::Error, macros_total::MacrosTotal, recipe::Recipe, ingredient::Ingredient, user_goal::UserGoal}; 
 use crate::utils::{db, calc}; 
 
 struct Database(SqlitePool); 
@@ -52,7 +52,11 @@ async fn main() -> Result<(), sqlx::Error> {
       update_recipe_serving_size,
       get_ingredients_by_recipe_id, 
       update_ingredient_amount,
-      delete_ingredient_from_recipe])
+      delete_ingredient_from_recipe, 
+      get_user_goal, 
+      update_weight_goal,
+      update_calories_goal, 
+      update_macros_goal])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 
@@ -303,4 +307,35 @@ async fn delete_ingredient_from_recipe(ingredient: Ingredient, pool: tauri::Stat
   recipe.update_entry(&pool.0).await?;
 
   Ok(recipe)
+}
+
+#[tauri::command]
+async fn get_user_goal(pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
+  let result = UserGoal::get_by_id(1, &pool.0).await; 
+  match result {
+    Ok(goal) => Ok(goal), 
+    Err(_) => {
+      let new_goal = UserGoal::new("maintain".to_string(), 0.0, 0.0, 0.0, 0.0, 2000.0); 
+      new_goal.create_entry(&pool.0).await?;
+      Ok(new_goal)
+    }
+  } 
+}
+
+#[tauri::command]
+async fn update_weight_goal(new_user_goal: UserGoal, pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
+  new_user_goal.update_weight(&pool.0).await?;
+  Ok(new_user_goal)
+}
+
+#[tauri::command]
+async fn update_calories_goal(new_user_goal: UserGoal, pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
+  new_user_goal.update_calories(&pool.0).await?;
+  Ok(new_user_goal)
+}
+
+#[tauri::command]
+async fn update_macros_goal(new_user_goal: UserGoal, pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
+  new_user_goal.update_macros(&pool.0).await?;
+  Ok(new_user_goal)
 }

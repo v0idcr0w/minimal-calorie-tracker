@@ -1,6 +1,6 @@
 use sqlx::{SqlitePool, query_as};
-use chrono::{NaiveDate, NaiveDateTime}; 
-use super::super::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog, ingredient::Ingredient, recipe::Recipe}; 
+use chrono::NaiveDate; 
+use super::super::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog, ingredient::Ingredient, recipe::Recipe, user_goal::UserGoal}; 
 
 impl FoodNormalized {
     pub async fn get_by_id(pk: i32, pool: &SqlitePool) -> Result<Self, sqlx::Error> {
@@ -147,5 +147,15 @@ impl Ingredient {
         .fetch_all(pool)
         .await?;
         Ok(ingredient_list)
+    }
+}
+
+impl UserGoal {
+    pub async fn get_by_id(pk: i32, pool: &SqlitePool) -> Result<Self, sqlx::Error> {
+        let goal = query_as::<_, Self>("SELECT * FROM user_goals WHERE id = ?")
+        .bind(pk)
+        .fetch_one(pool)
+        .await?;
+        Ok(goal)
     }
 }

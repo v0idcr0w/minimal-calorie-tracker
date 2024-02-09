@@ -19,9 +19,11 @@
 ### TODO: FEATURES
 - [OK] Recipes: a recipe is built from a combination of foods from the foods database, like a meal, but you can also query for it when creating a new meal. This table should have no relationship to food_normalized but it should use the data from it to be created.  
 - [OK] Enable the possibility of adding recipe under meals. 
-- Goals: missing fetch from database (also, macronutrients should be automatically calculated based on 2 other macronutrient amount or percentage provided). Protein should be provided as g per kg of bodyweight by default. 
+- [OK] Goals: missing fetch from database 
+- [OK] Delete confirmation
 - Option to import foods & recipes from CSV file. 
 - Option to export foods & recipes to CSV file. 
+- Sort foods, recipes etc by the id in descending order 
 - Graphs (pizza chart showing your current macro split for the day); line chart showing your weight progress; and your calories progress (only if there is more than 1 data point). 
-- Compare the users goals with their current progress. 
+- Compare the users goals with their current progress in the DailyLog page. 
 

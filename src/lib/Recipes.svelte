@@ -1,5 +1,6 @@
 <script>
     import { invoke } from "@tauri-apps/api";
+    import { confirm } from '@tauri-apps/api/dialog';
     import { onMount } from "svelte";
     import { logId, foodsNormalized, recipes } from './store.js';
     import SingleRecipe from "./SingleRecipe.svelte";
@@ -36,6 +37,8 @@
     }
 
     async function deleteRecipe(recipeId) {
+        const confirmed = await confirm('This action cannot be reverted. Are you sure?', { title: 'Confirm', type: 'info' });
+        if (!confirmed) return; 
         await invoke('delete_recipe', { recipeId });
         // refresh recipe list 
         await getAllRecipes(); 

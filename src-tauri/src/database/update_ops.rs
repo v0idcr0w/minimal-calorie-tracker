@@ -1,6 +1,6 @@
 use sqlx::SqlitePool;
 
-use super::super::models::{food::Food, meal::Meal, food_normalized::FoodNormalized, daily_log::DailyLog, ingredient::Ingredient, recipe::Recipe, macros_total::MacrosTotal}; 
+use super::super::models::{food::Food, meal::Meal, food_normalized::FoodNormalized, daily_log::DailyLog, ingredient::Ingredient, recipe::Recipe, macros_total::MacrosTotal, user_goal::UserGoal}; 
 
 impl Food {
     pub fn update(&mut self, new_amount: f64) {
@@ -131,6 +131,35 @@ impl Ingredient {
     }
     pub async fn update_entry(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
         sqlx::query!("UPDATE ingredients SET amount = ?, protein = ?, carbohydrate = ?, fat = ?, calories = ? WHERE id = ?", self.amount, self.protein, self.carbohydrate, self.fat, self.calories, self.id)
+        .execute(pool)
+        .await?;        
+
+        println!("[INFO] Updated entry with id = {}", self.id); 
+        Ok(())
+    }
+}
+
+impl UserGoal {
+    pub async fn update_weight(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        sqlx::query!("UPDATE user_goals SET weight = ?, weight_rate = ? WHERE id = ?", self.weight, self.weight_rate, self.id)
+        .execute(pool)
+        .await?;        
+
+        println!("[INFO] Updated entry with id = {}", self.id); 
+        Ok(())
+    }
+
+    pub async fn update_calories(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        sqlx::query!("UPDATE user_goals SET calories = ? WHERE id = ?", self.calories, self.id)
+        .execute(pool)
+        .await?;        
+
+        println!("[INFO] Updated entry with id = {}", self.id); 
+        Ok(())
+    }
+
+    pub async fn update_macros(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        sqlx::query!("UPDATE user_goals SET protein = ?, carbohydrate = ?, fat = ? WHERE id = ?", self.protein, self.carbohydrate, self.fat, self.id)
         .execute(pool)
         .await?;        
 

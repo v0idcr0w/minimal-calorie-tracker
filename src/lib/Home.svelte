@@ -1,9 +1,9 @@
 <script>
     import { invoke } from "@tauri-apps/api";
     import { onMount } from "svelte";
-    import { logId, today } from './store.js';
+    import { logId, today, userGoal } from './store.js';
     import { toTitleCase } from './titleCase.js';
-
+    
     let weight = 0; 
     // button controls 
     let editWeight = false;
@@ -13,12 +13,23 @@
     
     let todaysLog = {}; 
     // to be replaced 
-    let userGoals = {weight: 'gain', rate: 0, calories: 1500, protein: 150, carbohydrate: 200, fat: 50}; 
+    let newUserGoal = {weight: 'gain', weight_rate: 0, calories: 1500, protein: 150, carbohydrate: 200, fat: 50}; 
+    $: validMacros = ( estimateCaloriesFromMacros() ) <= newUserGoal.calories;
+
+    function estimateCaloriesFromMacros() {
+        return newUserGoal.protein * 4 + newUserGoal.carbohydrate * 4 + newUserGoal.fat * 9; 
+    }
 
     async function getOrCreateTodaysLog() {
         todaysLog = await invoke('get_todays_log');  
         weight = todaysLog.weight; 
         logId.set(todaysLog.id); 
+    }
+
+    async function getOrCreateUserGoal() {
+        // if the user is launching the app for the first time, this will create the user goal
+        userGoal.set(await invoke('get_user_goal')); 
+        newUserGoal = {...$userGoal}; // copy the object 
     }
 
     async function addWeight(weight) {
@@ -29,8 +40,25 @@
         }  
     }
 
+    // functions to edit the user's goal 
+    async function updateWeightGoal() {
+        userGoal.set(await invoke('update_weight_goal', { newUserGoal }));
+        editWeightGoal = false;  
+    }
+
+    async function updateCaloriesGoal() {
+        userGoal.set(await invoke('update_calories_goal', { newUserGoal }));
+        editCaloriesGoal = false; 
+    }
+
+    async function updateMacrosGoal() {
+        userGoal.set(await invoke('update_macros_goal', { newUserGoal }));
+        editMacrosGoal = false; 
+    }
+
     onMount( async () => {
         await getOrCreateTodaysLog();
+        await getOrCreateUserGoal(); 
     });
 
     let validationError = ""; 
@@ -64,40 +92,45 @@
 <h4>Weight <button on:click={() => editWeightGoal = !editWeightGoal }>{editWeightGoal ? "Cancel" : "Edit"}</button> </h4> 
 
 {#if editWeightGoal}
-    <input type="radio" id="w1" name="choice" value="lose" bind:group={userGoals.weight}> <label for="w1">Lose Weight</label>
-        {#if userGoals.weight == 'lose'}
-            <input type="number" min=0 bind:value={userGoals.rate} >% per week
+    <input type="radio" id="w1" name="choice" value="lose" bind:group={newUserGoal.weight}> <label for="w1">Lose Weight</label>
+        {#if newUserGoal.weight == 'lose'}
+            <input type="number" min=0 bind:value={newUserGoal.weight_rate} >% per week
         {/if}
     <br/>
 
-    <input type="radio" id="w2" name="choice" value="gain" bind:group={userGoals.weight}> <label for="w2">Gain Weight</label>
-        {#if userGoals.weight == 'gain'}
-            <input type="number" min=0 bind:value={userGoals.rate} >% per week
+    <input type="radio" id="w2" name="choice" value="gain" bind:group={newUserGoal.weight}> <label for="w2">Gain Weight</label>
+        {#if newUserGoal.weight == 'gain'}
+            <input type="number" min=0 bind:value={newUserGoal.weight_rate} >% per week
         {/if} 
     <br/>
 
-    <input type="radio" id="w3" name="choice" value="maintain" bind:group={userGoals.weight}>
+    <input type="radio" id="w3" name="choice" value="maintain" bind:group={newUserGoal.weight}>
     <label for="w3">Maintain Weight</label><br/>
+    <button on:click={updateWeightGoal}>Confirm Changes</button>
 {:else}
-    <p>{toTitleCase(userGoals.weight)} weight at a rate of {userGoals.rate.toFixed(2)}% per week</p>
-
+    <p>{toTitleCase($userGoal.weight)} weight at a rate of {$userGoal.weight_rate.toFixed(2)}% per week</p>
 {/if}
 
 <h4>Daily Calories <button on:click={() => editCaloriesGoal = !editCaloriesGoal}>{editCaloriesGoal ? "Cancel" : "Update"}</button></h4> 
 {#if editCaloriesGoal}
-    <input type="number" min=0 bind:value={userGoals.calories}> kcal
+    <input type="number" min=0 bind:value={newUserGoal.calories}> kcal
+    <button on:click={updateCaloriesGoal}>Confirm Changes</button>
 {:else}
-    <p>{userGoals.calories} kcal</p>
+    <p>{$userGoal.calories} kcal</p>
 {/if}
 
 
 <h4>Macronutrients  <button on:click={() => editMacrosGoal = !editMacrosGoal}>{editMacrosGoal ? "Cancel" : "Update"}</button> </h4>
 {#if editMacrosGoal}
-    <input type="number" min=0 bind:value={userGoals.protein}> g Protein <br/>
-    <input type="number" min=0 bind:value={userGoals.carbohydrate}> g Carbohydrates <br/>
-    <input type="number" min=0 bind:value={userGoals.fat}> g Fats <br/>
+    <input type="number" min=0 bind:value={newUserGoal.protein}> g Protein ≈ {newUserGoal.protein * 4} kcal <br/>
+    <input type="number" min=0 bind:value={newUserGoal.carbohydrate}> g Carbohydrates ≈ {newUserGoal.carbohydrate * 4} kcal <br/>
+    <input type="number" min=0 bind:value={newUserGoal.fat}> g Fats ≈ {newUserGoal.fat * 9} kcal <br/>
+    {#if !validMacros}
+        <p class="error">Total macronutrients exceeds daily calorie goal by {estimateCaloriesFromMacros() - newUserGoal.calories} kcal. You may want to update your goals.</p>
+    {/if}
+    <button on:click={updateMacrosGoal}>Confirm Changes</button>
 {:else}
-    <p>{userGoals.protein} g Protein</p>
-    <p>{userGoals.carbohydrate} g Carbohydrates</p>
-    <p>{userGoals.fat} g Fats</p> 
+    <p>{$userGoal.protein} g Protein</p>
+    <p>{$userGoal.carbohydrate} g Carbohydrates</p>
+    <p>{$userGoal.fat} g Fats</p> 
 {/if}
