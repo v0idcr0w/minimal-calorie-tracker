@@ -1,7 +1,7 @@
 <script>
 import { invoke } from "@tauri-apps/api";
 import { onMount } from "svelte";
-import { logId } from './store.js';
+import { logId, userGoal } from './store.js';
 
 let logs = []; 
 
@@ -12,7 +12,13 @@ async function refreshLogs() {
 
 onMount(async () => {
     await refreshLogs(); 
-})
+    if (!($logId)) {
+        logId.set(await invoke('get_todays_log').id); 
+    }
+    if (!($userGoal)) {
+        userGoal.set(await invoke('get_user_goal')); 
+    }
+});
 
 </script>
 
@@ -33,11 +39,11 @@ onMount(async () => {
         {#each logs as log (log.id)}
             <tr class:highlight={log.id === $logId}>
                 <td>{log.entry_date.slice(0,10)}</td>
-                <td>{log.total_protein.toFixed(1)}</td>
-                <td>{log.total_carbohydrate.toFixed(1)}</td>
-                <td>{log.total_fat.toFixed(1)}</td>
-                <td>{log.total_calories.toFixed(1)}</td>
-                <td>{log.weight.toFixed(2)}</td>
+                <td>{log.total_protein.toFixed(1)} ({(log.total_protein - $userGoal.protein).toFixed(1)}) </td>
+                <td>{log.total_carbohydrate.toFixed(1)} ({(log.total_carbohydrate - $userGoal.carbohydrate).toFixed(1)})  </td>
+                <td>{log.total_fat.toFixed(1)} ({(log.total_fat - $userGoal.fat).toFixed(1)}) </td>
+                <td>{log.total_calories.toFixed(1)} ({(log.total_calories - $userGoal.calories).toFixed(1)}) </td>
+                <td>{log.weight.toFixed(2)} </td>
             </tr>
         {/each}
 </table>

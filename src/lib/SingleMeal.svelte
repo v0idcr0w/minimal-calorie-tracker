@@ -29,10 +29,10 @@
 
     onMount(async () => {
         if ($foodsNormalized.length === 0) {
-            foodsNormalized.set(await invoke('get_foods')); 
+            foodsNormalized.set(await invoke('get_foods_normalized')); 
         }
         if ($recipes.length === 0) {
-            recipes.set(await invoke('get_recipes'));
+            recipes.set(await invoke('get_all_recipes'));
         }
         await refreshFoods();  
     }); 

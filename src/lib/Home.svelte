@@ -3,6 +3,7 @@
     import { onMount } from "svelte";
     import { logId, today, userGoal } from './store.js';
     import { toTitleCase } from './titleCase.js';
+    import MacrosPie from './MacrosPie.svelte'; 
     
     let weight = 0; 
     // button controls 
@@ -12,13 +13,13 @@
     let editMacrosGoal = false; 
     
     let todaysLog = {}; 
-    // to be replaced 
-    let newUserGoal = {weight: 'gain', weight_rate: 0, calories: 1500, protein: 150, carbohydrate: 200, fat: 50}; 
-    $: validMacros = ( estimateCaloriesFromMacros() ) <= newUserGoal.calories;
 
-    function estimateCaloriesFromMacros() {
-        return newUserGoal.protein * 4 + newUserGoal.carbohydrate * 4 + newUserGoal.fat * 9; 
-    }
+    let newUserGoal = {}; 
+    // this needs to be declared as reactive in order to make the chart reactive too 
+    $: totalCalories = newUserGoal.protein * 4 + newUserGoal.carbohydrate * 4 + newUserGoal.fat * 9;  
+    $: totalMacros = newUserGoal.protein + newUserGoal.carbohydrate + newUserGoal.fat; 
+    $: macros = [newUserGoal.protein/totalMacros * 100, newUserGoal.carbohydrate/totalMacros * 100, newUserGoal.fat/totalMacros * 100 ]; 
+    $: validMacros = totalCalories <= newUserGoal.calories;
 
     async function getOrCreateTodaysLog() {
         todaysLog = await invoke('get_todays_log');  
@@ -108,7 +109,7 @@
     <label for="w3">Maintain Weight</label><br/>
     <button on:click={updateWeightGoal}>Confirm Changes</button>
 {:else}
-    <p>{toTitleCase($userGoal.weight)} weight at a rate of {$userGoal.weight_rate.toFixed(2)}% per week</p>
+    <p>{$userGoal.weight ? toTitleCase($userGoal.weight) : ""} weight at a rate of {$userGoal.weight_rate ? $userGoal.weight_rate.toFixed(2) : 0}% per week</p>
 {/if}
 
 <h4>Daily Calories <button on:click={() => editCaloriesGoal = !editCaloriesGoal}>{editCaloriesGoal ? "Cancel" : "Update"}</button></h4> 
@@ -126,7 +127,7 @@
     <input type="number" min=0 bind:value={newUserGoal.carbohydrate}> g Carbohydrates ≈ {newUserGoal.carbohydrate * 4} kcal <br/>
     <input type="number" min=0 bind:value={newUserGoal.fat}> g Fats ≈ {newUserGoal.fat * 9} kcal <br/>
     {#if !validMacros}
-        <p class="error">Total macronutrients exceeds daily calorie goal by {estimateCaloriesFromMacros() - newUserGoal.calories} kcal. You may want to update your goals.</p>
+        <p class="error">Total macronutrients exceeds daily calorie goal by {totalCalories - newUserGoal.calories} kcal. You may want to update your goals.</p>
     {/if}
     <button on:click={updateMacrosGoal}>Confirm Changes</button>
 {:else}
@@ -134,3 +135,5 @@
     <p>{$userGoal.carbohydrate} g Carbohydrates</p>
     <p>{$userGoal.fat} g Fats</p> 
 {/if}
+
+<MacrosPie {macros}/> 

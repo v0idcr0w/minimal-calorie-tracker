@@ -5,9 +5,13 @@
     import { toTitleCase } from './titleCase.js';
     import { dailyTotals, today, logId } from './store.js'; 
     import SingleMeal from './SingleMeal.svelte'; 
+    import MacrosPie from './MacrosPie.svelte'; 
 
     const todayFormatted = $today.toISOString().split('T')[0];
+
     dailyTotals.set({calories: 0, protein: 0, carbohydrate: 0, fat: 0}); 
+    $: totalMacros = $dailyTotals.protein + $dailyTotals.carbohydrate + $dailyTotals.fat; 
+    $: macros = [$dailyTotals.protein / totalMacros * 100, $dailyTotals.carbohydrate / totalMacros * 100, $dailyTotals.fat / totalMacros * 100]; 
     
     let meals = []; 
     let newMeal = {}; 
@@ -56,6 +60,9 @@
 
 </script>
 
+<!-- Total meals in Chart format -->
+<MacrosPie {macros} />
+
 <!-- Total calories and macronutrients (sum of all meals) -->
 <table>
     <thead>
@@ -84,6 +91,7 @@
         <td>g</td>
     </tr>
 </table>
+
 
 <!-- Meal creation -->
 <button on:click={() => createMealActive = !createMealActive}>{ createMealActive ? "Cancel" : "Create Meal" }</button>

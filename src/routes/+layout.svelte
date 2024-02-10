@@ -8,6 +8,7 @@
 	<a href="/recipes">Recipes</a>
 	<a href="/meals">Meals</a>
 	<a href="/logging">Daily Logging</a>
+	<a href="/graphs">Graphs</a>
 </nav>
 
 

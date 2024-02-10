@@ -1,7 +1,6 @@
 use sqlx::FromRow; 
 use serde::{Serialize, Deserialize};
 
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, FromRow)] 
 pub struct FoodNormalized {
     pub id: i32, 
@@ -12,6 +11,18 @@ pub struct FoodNormalized {
     pub normalized_carbohydrate: f64, 
     pub normalized_fat: f64, 
     pub normalized_calories: f64
+}
+
+#[derive(Debug, Deserialize)] 
+pub struct FoodNormalizedCsv {
+    // this struct is the same as the previous struct, but it's used to deserialize the CSV file, and doesn't have an id. 
+    pub name: String, 
+    pub serving_size: f64, 
+    pub unit: String, 
+    pub normalized_protein: f64, 
+    pub normalized_carbohydrate: f64, 
+    pub normalized_fat: f64, 
+    pub normalized_calories: f64    
 }
 
 impl FoodNormalized {

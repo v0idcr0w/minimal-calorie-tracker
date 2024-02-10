@@ -12,7 +12,7 @@ mod tests;
 use sqlx::SqlitePool; 
 use chrono::Local; 
 use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog, error::Error, macros_total::MacrosTotal, recipe::Recipe, ingredient::Ingredient, user_goal::UserGoal}; 
-use crate::utils::{db, calc}; 
+use crate::utils::{db, calc, file_ops}; 
 
 struct Database(SqlitePool); 
 
@@ -56,7 +56,9 @@ async fn main() -> Result<(), sqlx::Error> {
       get_user_goal, 
       update_weight_goal,
       update_calories_goal, 
-      update_macros_goal])
+      update_macros_goal,
+      write_foods_file, 
+      read_foods_file])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 
@@ -338,4 +340,20 @@ async fn update_calories_goal(new_user_goal: UserGoal, pool: tauri::State<'_,Dat
 async fn update_macros_goal(new_user_goal: UserGoal, pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
   new_user_goal.update_macros(&pool.0).await?;
   Ok(new_user_goal)
+}
+
+#[tauri::command]
+async fn write_foods_file(file_path: String, pool: tauri::State<'_, Database>) -> Result<(),  Error> {
+  let content = FoodNormalized::get_all(&pool.0).await?; 
+  file_ops::write_csv_file(file_path, content).await?;
+  Ok(())
+}
+
+#[tauri::command]
+async fn read_foods_file(file_path: String, pool: tauri::State<'_, Database>) -> Result<(),  Error> {
+  let content = file_ops::read_csv_file(file_path).await?;
+  for food in content {
+    food.create_entry(&pool.0).await?;
+  }
+  Ok(())
 }

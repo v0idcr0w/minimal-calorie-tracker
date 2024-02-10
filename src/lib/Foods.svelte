@@ -4,17 +4,21 @@
     import { confirm } from '@tauri-apps/api/dialog';
     import { onMount } from 'svelte'; 
     import { foodsNormalized } from './store.js';
-    import SingleFood from './SingleFood.svelte'; 
-    
+
     // components 
-    import NewFood from './NewFood.svelte'
+    import NewFood from './NewFood.svelte'; 
+    import LoadCsv from './LoadCsv.svelte'; 
+    import SaveCsv from './SaveCsv.svelte'; 
+    import SingleFood from './SingleFood.svelte'; 
 
     async function refreshFoods() {
-      foodsNormalized.set(await invoke('get_foods_normalized'))
+      foodsNormalized.set(await invoke('get_foods_normalized')); 
+      // sort by creation (id) in descending order 
+      $foodsNormalized.sort((a, b) => b.id - a.id); 
     }
 
     onMount(async () => {
-      await refreshFoods() 
+      await refreshFoods(); 
     });
 
     async function deleteFood(food) {
@@ -26,7 +30,9 @@
     }
 
 </script>
-  
+
+<LoadCsv onUpdate={refreshFoods} /> 
+<SaveCsv />
 <NewFood />
 
 {#each $foodsNormalized as foodNormalized (foodNormalized.id)}

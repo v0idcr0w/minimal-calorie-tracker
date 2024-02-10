@@ -21,9 +21,19 @@
 - [OK] Enable the possibility of adding recipe under meals. 
 - [OK] Goals: missing fetch from database 
 - [OK] Delete confirmation
-- Option to import foods & recipes from CSV file. 
-- Option to export foods & recipes to CSV file. 
-- Sort foods, recipes etc by the id in descending order 
-- Graphs (pizza chart showing your current macro split for the day); line chart showing your weight progress; and your calories progress (only if there is more than 1 data point). 
-- Compare the users goals with their current progress in the DailyLog page. 
+- [OK] Sort foods, recipes etc by the id in descending order 
+- [OK] Option to import foods from CSV file. 
+- [OK] Option to export foods to CSV file. 
+- [OK] Install charts.js 
+- [OK] Pizza chart showing your current macro split for the day in the meals page; also in the home page for your goals) 
+- [OK] Double Line chart showing your weight progress; and your calories progress over the weeks (only if there is more than 1 data point). https://github.com/SauravKanchan/svelte-chartjs 
+- [OK] Compare the users goals with their current progress in the Daily Log page (+ 0.5 kcal relative to goal etc...) 
 
+### TODO: DESIGN
+- Light mode and dark mode 
+- Home
+- Foods
+- Recipes
+- Meals 
+- Logs
+- Progress Charts 

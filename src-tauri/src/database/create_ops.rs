@@ -1,5 +1,5 @@
 use sqlx::SqlitePool;
-use super::super::models::{food::Food, meal::Meal, food_normalized::FoodNormalized, daily_log::DailyLog, ingredient::Ingredient, recipe::Recipe, user_goal::UserGoal}; 
+use super::super::models::{food::Food, meal::Meal, food_normalized::FoodNormalized, food_normalized::FoodNormalizedCsv, daily_log::DailyLog, ingredient::Ingredient, recipe::Recipe, user_goal::UserGoal}; 
 
 impl FoodNormalized {
     pub async fn create_entry(&mut self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
@@ -10,6 +10,18 @@ impl FoodNormalized {
         .await?;
 
         self.id = result.last_insert_rowid() as i32; 
+
+        println!("[INFO] Inserted new entry"); 
+        Ok(())
+    }
+}
+
+impl FoodNormalizedCsv {
+    pub async fn create_entry(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        let _result = sqlx::query!("INSERT INTO foods_normalized (name, unit, serving_size, normalized_protein, normalized_carbohydrate, normalized_fat, normalized_calories) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        self.name, self.unit, self.serving_size, self.normalized_protein, self.normalized_carbohydrate, self.normalized_fat, self.normalized_calories)
+        .execute(pool)
+        .await?;
 
         println!("[INFO] Inserted new entry"); 
         Ok(())
