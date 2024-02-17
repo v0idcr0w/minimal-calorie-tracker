@@ -3,6 +3,7 @@
     import { onMount } from "svelte";
     import { logId, today, userGoal } from './store.js';
     import { toTitleCase } from './titleCase.js';
+    import { base } from '$app/paths';
     import MacrosPie from './MacrosPie.svelte'; 
     
     let weight = 0; 
@@ -72,68 +73,126 @@
     }
 </script>
 
-<h3>Weight-in for {$today.toISOString().split('T')[0]}:</h3> 
+<h3>Weight-in for {$today.toISOString().split('T')[0]}:
+    {#if todaysLog.weight > 0}
+        {todaysLog.weight} kg
+        <button class="icon-button" on:click={() => editWeight = !editWeight}>
+            {#if !editWeight}
+            <img src="{`${base}/edit.svg`}" alt="Edit" width="30" />
+            <span class="tooltiptext">Edit today's weight</span>
+            {:else}
+            <img src="{`${base}/cancel.svg`}" alt="Cancel" width="30" />
+            {/if}
+        </button>
+    {/if} 
+</h3> 
 
-{#if todaysLog.weight > 0}
-    Your weight today is: {todaysLog.weight} kg
-    <button on:click={() => editWeight = !editWeight}>{!editWeight ? "Edit" : "Cancel"}</button>
-{/if} 
+
+<div>
 {#if todaysLog.weight <= 0 || editWeight}
-    <p>Enter new weight:</p>
+    <p>Enter new weight:
     <input type="number" name="weight" min=0 max=999 bind:value={weight} style="width: 60px;" /> kg
-    <button on:click={addWeight(weight)}>Ok</button>
+    <button class="icon-button" on:click={addWeight(weight)}>
+        <img src="{`${base}/ok.svg`}" alt="Confirm" width="30" />
+    </button>
+</p>
 {/if}
 
 {#if validationError}
     <p class="error">{validationError}</p>
 {/if}
+</div>
 
 
-<h3>Your goals:</h3>
-<h4>Weight <button on:click={() => editWeightGoal = !editWeightGoal }>{editWeightGoal ? "Cancel" : "Edit"}</button> </h4> 
+<div>
+<h3>Your goals</h3>
+
+<h4>Weight 
+    <button class="icon-button" on:click={() => editWeightGoal = !editWeightGoal }>
+    {#if !editWeightGoal} 
+    <img src="{`${base}/edit.svg`}" alt="Edit" width="30" />
+    <span class="tooltiptext">Edit weight goal</span>
+    {:else}
+    <img src="{`${base}/cancel.svg`}" alt="Cancel" width="30" />
+    {/if}
+</button> </h4> 
+
 
 {#if editWeightGoal}
     <input type="radio" id="w1" name="choice" value="lose" bind:group={newUserGoal.weight}> <label for="w1">Lose Weight</label>
         {#if newUserGoal.weight == 'lose'}
-            <input type="number" min=0 bind:value={newUserGoal.weight_rate} >% per week
+            <input class="small-input" type="number" min=0 bind:value={newUserGoal.weight_rate} >% per week
         {/if}
     <br/>
 
     <input type="radio" id="w2" name="choice" value="gain" bind:group={newUserGoal.weight}> <label for="w2">Gain Weight</label>
         {#if newUserGoal.weight == 'gain'}
-            <input type="number" min=0 bind:value={newUserGoal.weight_rate} >% per week
+            <input class="small-input" type="number" min=0 bind:value={newUserGoal.weight_rate} >% per week
         {/if} 
     <br/>
 
     <input type="radio" id="w3" name="choice" value="maintain" bind:group={newUserGoal.weight}>
     <label for="w3">Maintain Weight</label><br/>
-    <button on:click={updateWeightGoal}>Confirm Changes</button>
+    <button class="icon-button" on:click={updateWeightGoal}>
+        <img src="{`${base}/ok.svg`}" alt="Confirm" width="30" />
+    </button>
 {:else}
     <p>{$userGoal.weight ? toTitleCase($userGoal.weight) : ""} weight at a rate of {$userGoal.weight_rate ? $userGoal.weight_rate.toFixed(2) : 0}% per week</p>
 {/if}
-
-<h4>Daily Calories <button on:click={() => editCaloriesGoal = !editCaloriesGoal}>{editCaloriesGoal ? "Cancel" : "Update"}</button></h4> 
-{#if editCaloriesGoal}
-    <input type="number" min=0 bind:value={newUserGoal.calories}> kcal
-    <button on:click={updateCaloriesGoal}>Confirm Changes</button>
-{:else}
-    <p>{$userGoal.calories} kcal</p>
-{/if}
+</div>
 
 
-<h4>Macronutrients  <button on:click={() => editMacrosGoal = !editMacrosGoal}>{editMacrosGoal ? "Cancel" : "Update"}</button> </h4>
-{#if editMacrosGoal}
-    <input type="number" min=0 bind:value={newUserGoal.protein}> g Protein ≈ {newUserGoal.protein * 4} kcal <br/>
-    <input type="number" min=0 bind:value={newUserGoal.carbohydrate}> g Carbohydrates ≈ {newUserGoal.carbohydrate * 4} kcal <br/>
-    <input type="number" min=0 bind:value={newUserGoal.fat}> g Fats ≈ {newUserGoal.fat * 9} kcal <br/>
-    {#if !validMacros}
-        <p class="error">Total macronutrients exceeds daily calorie goal by {totalCalories - newUserGoal.calories} kcal. You may want to update your goals.</p>
+<div>
+    <h4>Daily Calories 
+        <button class="icon-button" on:click={() => editCaloriesGoal = !editCaloriesGoal}>
+            {#if !editCaloriesGoal}
+            <img src="{`${base}/edit.svg`}" alt="Edit" width="30" />
+            <span class="tooltiptext">Edit calories goal</span>
+            {:else}
+            <img src="{`${base}/cancel.svg`}" alt="Cancel" width="30" />
+            {/if}
+        </button>
+    </h4>
+
+    <p>
+    {#if editCaloriesGoal}
+        <input type="number" min=0 bind:value={newUserGoal.calories}> kcal
+        <button class="icon-button" on:click={updateCaloriesGoal}>
+            <img src="{`${base}/ok.svg`}" alt="Confirm" width="30" />
+        </button>
+    {:else}
+        {$userGoal.calories} kcal
     {/if}
-    <button on:click={updateMacrosGoal}>Confirm Changes</button>
-{:else}
-    <p>{$userGoal.protein} g Protein</p>
-    <p>{$userGoal.carbohydrate} g Carbohydrates</p>
-    <p>{$userGoal.fat} g Fats</p> 
-{/if}
+    </p>
+</div>
 
-<MacrosPie {macros}/> 
+<div class="macros-container">
+    <div style="margin-right: 60px;">
+    <h4>Macronutrients 
+        <button class="icon-button" on:click={() => editMacrosGoal = !editMacrosGoal}>
+            {#if !editMacrosGoal}
+            <img src="{`${base}/edit.svg`}" alt="Edit" width="30" />
+            <span class="tooltiptext">Edit macronutrients goal</span>
+            {:else}
+            <img src="{`${base}/cancel.svg`}" alt="Cancel" width="30" />
+            {/if}
+        </button>
+    </h4>
+    {#if editMacrosGoal}
+        <input class="small-input" type="number" min=0 bind:value={newUserGoal.protein}> g Protein ≈ {newUserGoal.protein * 4} kcal <br/>
+        <input class="small-input" type="number" min=0 bind:value={newUserGoal.carbohydrate}> g Carbohydrates ≈ {newUserGoal.carbohydrate * 4} kcal <br/>
+        <input class="small-input" type="number" min=0 bind:value={newUserGoal.fat}> g Fats ≈ {newUserGoal.fat * 9} kcal <br/>
+        {#if !validMacros}
+            <p class="error">Total macronutrients exceeds daily calorie goal by {totalCalories - newUserGoal.calories} kcal. You may want to update your goals.</p>
+        {/if}
+        <button class="icon-button" on:click={updateMacrosGoal}>
+            <img src="{`${base}/ok.svg`}" alt="Confirm" width="30" />
+        </button>
+    {:else}
+        <p>{$userGoal.protein} g Protein</p>
+        <p>{$userGoal.carbohydrate} g Carbohydrates</p>
+        <p>{$userGoal.fat} g Fats</p> 
+    {/if}
+    </div>
+    <MacrosPie {macros}/> 
+</div>

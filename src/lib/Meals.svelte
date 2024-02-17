@@ -4,8 +4,10 @@
     import { onMount } from 'svelte'
     import { toTitleCase } from './titleCase.js';
     import { dailyTotals, today, logId } from './store.js'; 
+    import { base } from '$app/paths';
     import SingleMeal from './SingleMeal.svelte'; 
     import MacrosPie from './MacrosPie.svelte'; 
+	import MaterialFloatingLabel from './MaterialFloatingLabel.svelte';
 
     const todayFormatted = $today.toISOString().split('T')[0];
 
@@ -61,10 +63,35 @@
 </script>
 
 <!-- Total meals in Chart format -->
-<MacrosPie {macros} />
+<!-- {#if meals.length > 0} 
+    <MacrosPie {macros} />
+{/if} -->
 
-<!-- Total calories and macronutrients (sum of all meals) -->
-<table>
+<div class="mx-4">
+
+<div class="flex flex-col items-center">
+<!-- Meal creation -->
+    <div class="mb-4">
+    <button class="text-button" on:click={() => createMealActive = !createMealActive}>
+        {#if !createMealActive }
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg> New meal 
+        {:else}
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg> Cancel
+        {/if}
+    </button>
+    </div>
+
+{#if createMealActive}
+<MaterialFloatingLabel label="Meal type" bind:value={newMeal.name} />
+    <div class="mb-4">
+    <button class="text-button" on:click={addNewMeal(newMeal)}>
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg> OK
+    </button>
+    </div>
+{/if}
+</div>
+
+<table class="mx-auto tracking-tighter text-sm mb-2">
     <thead>
         <tr>
             <th colspan="3">Total for {todayFormatted}</th>
@@ -92,26 +119,20 @@
     </tr>
 </table>
 
-
-<!-- Meal creation -->
-<button on:click={() => createMealActive = !createMealActive}>{ createMealActive ? "Cancel" : "Create Meal" }</button>
-
-{#if createMealActive}
-<input name="type" placeholder="Meal type" bind:value={newMeal.name} />
-<button on:click={addNewMeal(newMeal)}>Confirm</button>
-{/if}
-<br />
-
-{#each meals as meal, index (meal.id) } 
-
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    {#each meals as meal, index (meal.id) } 
+    <div class="block w-full text-center tracking-tighter rounded-lg bg-white p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]">
 <!-- Delete meal -->
-<h3>{toTitleCase(meal.name)} 
-<button on:click={deleteMeal(meal)}>Delete</button>
-</h3> 
+    <h3 class="text-neutral-700 text-xl m-4 font-bold">{toTitleCase(meal.name)} 
+    </h3> 
+    <button class="icon-button mb-4" on:click={deleteMeal(meal)}>
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+    </button>
 
 <!-- render all foods associated with this meal -->
-<SingleMeal mealId={meal.id} onUpdate={updateTotals} />
-
-
-
+    <SingleMeal mealId={meal.id} onUpdate={updateTotals} />
+    </div>
 {/each} 
+</div>
+
+</div>

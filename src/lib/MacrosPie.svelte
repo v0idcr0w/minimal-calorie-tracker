@@ -25,6 +25,12 @@
     let options = {
     responsive: true,
     plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          boxWidth: 10, 
+        },
+      },
       tooltip: {
         callbacks: {
           label: function(context) {
@@ -44,6 +50,6 @@
 
 </script>
 
-<div style="height: 250px;">
+<div style="width: 225px;">
     <Doughnut {data} {options} />
 </div> 

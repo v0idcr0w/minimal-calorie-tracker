@@ -4,11 +4,13 @@
     import { onMount } from "svelte";
     import { logId, foodsNormalized, recipes } from './store.js';
     import SingleRecipe from "./SingleRecipe.svelte";
+	import MaterialFloatingLabel from "./MaterialFloatingLabel.svelte";
 
     let newRecipe = {name: '', serving_size: 0.0, unit: ''}; 
     let newRecipeActive = false; 
     // Check if the new recipe box is properly filled 
-    $: inputsFilled = newRecipe.name !== "" && newRecipe.serving_size >= 0.0 && newRecipe.unit !== "";
+    $: inputsFilled = newRecipe.name !== "" && Number(newRecipe.serving_size) >= 0.0 && newRecipe.unit !== "";
+    console.log(newRecipe.serving_size)
     
     onMount(async () => {
         if ($foodsNormalized.length === 0) {
@@ -20,8 +22,8 @@
         await getAllRecipes(); 
     });
 
-    async function createNewRecipe() {
-        await invoke('create_new_recipe', { name: newRecipe.name, servingSize: newRecipe.serving_size, unit: newRecipe.unit });
+    async function createNewRecipe() { 
+        await invoke('create_new_recipe', { name: newRecipe.name, servingSize: Number(newRecipe.serving_size), unit: newRecipe.unit });
         // reset button status 
         newRecipeActive = false;
         // reset newRecipe object
@@ -47,20 +49,51 @@
 
 </script>
 
-<!-- Creating a new recipe -->
-<button on:click={() => newRecipeActive = !newRecipeActive}>Create New Recipe</button>
-{#if newRecipeActive} 
-<ul>
-    <li>Name: <input type="text" name="recipeName" placeholder="Recipe Name" bind:value={newRecipe.name} /> </li>
-    <li>Serving size and units: <input type="number" name="servingSize" placeholder=0 min=0 bind:value={newRecipe.serving_size} />  <input type="text" name="unit" placeholder="plate" bind:value={newRecipe.unit} /> </li>
-</ul>
+<div class="mx-4">
+    <!-- Creating a new recipe -->
+    <div class="flex flex-col items-center justify-center">
+    <div class="mb-4">
+        <div class="flex justify-center">
+        <button class="text-button mb-4" on:click={() => newRecipeActive = !newRecipeActive}>
+            {#if !newRecipeActive}
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg> New recipe 
+            {:else}
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg> Cancel
+            {/if}
+        </button>
+        </div>
+    
+        {#if newRecipeActive} 
+        <div class="block tracking-tighter text-sm">
+            <table class="mx-auto">
+                <tr>
+                    <td colspan="2"> <MaterialFloatingLabel label="Recipe name" bind:value={newRecipe.name} /> </td>
+                </tr>
+                <tr>
+                    <td><MaterialFloatingLabel label="Serving size" bind:value="{newRecipe.serving_size}" /></td>
+                    <td>
+                        <MaterialFloatingLabel label="Measurement unit" bind:value="{newRecipe.unit}" />
+                    </td>
+                </tr>
+            </table>
 
-<button on:click={createNewRecipe} disabled={!inputsFilled}> Ok </button>
-{/if}
+            <!-- Flex justify-center is necessary to center these buttons  -->
+            <div class="flex justify-center">
+            <button class="text-button" on:click={createNewRecipe} disabled={!inputsFilled} > 
+                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg> OK
+            </button>
+            </div>
+        </div>
+        {/if}
+        </div>
+    </div>
+
 
 <!-- Rendering all recipes below -->
-{#each $recipes as recipe (recipe.id)}
-<div>
-    <SingleRecipe recipe={recipe} onDelete={() => deleteRecipe(recipe.id)} />
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    {#each $recipes as recipe (recipe.id)}
+        <SingleRecipe recipe={recipe} onDelete={() => deleteRecipe(recipe.id)} />
+    {/each}
+    </div>
+
 </div>
-{/each}

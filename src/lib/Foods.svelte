@@ -31,11 +31,22 @@
 
 </script>
 
-<LoadCsv onUpdate={refreshFoods} /> 
-<SaveCsv />
-<NewFood />
+<div class="mx-4">
 
-{#each $foodsNormalized as foodNormalized (foodNormalized.id)}
-<SingleFood foodNormalized={foodNormalized} onDelete={deleteFood} />
-{/each}
+  <!-- Load and save buttons -->
+  <div class="flex space-x-4">
+    <LoadCsv onUpdate={refreshFoods} /> 
+    <SaveCsv />
+  </div>
 
+  <div class="flex justify-center">
+    <NewFood />
+  </div>
+  <br />
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    {#each $foodsNormalized as foodNormalized (foodNormalized.id)}
+      <SingleFood foodNormalized={foodNormalized} onDelete={deleteFood} />
+    {/each}
+  </div>
+</div>

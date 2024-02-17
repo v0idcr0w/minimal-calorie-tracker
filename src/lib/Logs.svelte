@@ -22,34 +22,50 @@ onMount(async () => {
 
 </script>
 
-<h3>Daily Log History</h3>
-<table>
-    <thead>
+<table class="table-auto mx-4">
+    <thead class="border-b bg-purple-800 font-medium text-white tracking-tight">
         <tr>
-            <th>Date</th>
-            <th>Protein (g)</th>
-            <th>Carbohydrates (g)</th>
-            <th>Fats (g)</th>
-            <th>Calories (kcal)</th>
-            <th>Weight (kg)</th>
+            <th>Date <br>  </th>
+            <th>Protein <br> (g)</th>
+            <th>Carbohydrates <br> (g)</th>
+            <th>Fats <br> (g)</th>
+            <th>Calories <br> (kcal)</th>
+            <th>Weight <br> (kg)</th>
         </tr>
     </thead>
 
     <tbody>
         {#each logs as log (log.id)}
-            <tr class:highlight={log.id === $logId}>
+            <tr class="border-b transition duration-300 ease-in-out tracking-tight hover:bg-neutral-200">
                 <td>{log.entry_date.slice(0,10)}</td>
-                <td>{log.total_protein.toFixed(1)} ({(log.total_protein - $userGoal.protein).toFixed(1)}) </td>
-                <td>{log.total_carbohydrate.toFixed(1)} ({(log.total_carbohydrate - $userGoal.carbohydrate).toFixed(1)})  </td>
-                <td>{log.total_fat.toFixed(1)} ({(log.total_fat - $userGoal.fat).toFixed(1)}) </td>
-                <td>{log.total_calories.toFixed(1)} ({(log.total_calories - $userGoal.calories).toFixed(1)}) </td>
+                <td>{log.total_protein.toFixed(0)} <span class="smaller">({(log.total_protein - $userGoal.protein).toFixed(0)}) </span>  </td>
+                <td>{log.total_carbohydrate.toFixed(0)} <span class="smaller">({(log.total_carbohydrate - $userGoal.carbohydrate).toFixed(0)})</span>   </td>
+                <td>{log.total_fat.toFixed(0)} <span class="smaller">({(log.total_fat - $userGoal.fat).toFixed(0)})</span>  </td>
+                <td>{log.total_calories.toFixed(0)} <span class="smaller">({(log.total_calories - $userGoal.calories).toFixed(0)})</span> </td>
                 <td>{log.weight.toFixed(2)} </td>
             </tr>
         {/each}
 </table>
 
-<style>
-    .highlight {
-        background-color: yellow 
+<style lang="postcss">
+
+    .smaller {
+        font-size: 0.8em; 
+    }
+
+    table {
+        text-align: center; 
+        table-layout: fixed; 
+        width: 90%; 
+    }
+
+    td, th {
+        width: 16.66%; 
+        padding-top: 0.5em; 
+        padding-bottom: 0.5em; 
+    }
+
+    thead {
+        text-align: center; 
     }
 </style>

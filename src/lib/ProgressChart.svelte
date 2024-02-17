@@ -9,7 +9,6 @@
     let labels = []; 
     let dataCalories = []; 
     let dataWeight = []; 
-    let selectedAxis = 'both'; 
 
     function formatDate(dateString) {
         const options = { day: '2-digit', month: 'short'}; 
@@ -33,18 +32,18 @@ $: data = {
       yAxisID: 'y1', // left y-axis
       fill: false, // disable fill under curve 
       lineTension: 0.3,
-      backgroundColor: 'rgba(225, 204,230, .3)',
-      borderColor: 'rgb(205, 130, 158)',
+      backgroundColor: 'rgba(225, 204, 230, .3)',
+      borderColor: 'rgb(124, 58, 237)',
       borderCapStyle: 'butt',
       borderDash: [],
       borderDashOffset: 0.0,
       borderJoinStyle: 'miter',
-      pointBorderColor: 'rgb(205, 130,1 58)',
+      pointBorderColor: 'rgb(124, 58, 237)',
       pointBackgroundColor: 'rgb(255, 255, 255)',
       pointBorderWidth: 10,
       pointHoverRadius: 5,
       pointHoverBackgroundColor: 'rgb(0, 0, 0)',
-      pointHoverBorderColor: 'rgba(220, 220, 220,1)',
+      pointHoverBorderColor: 'rgba(220, 220, 220, 1)',
       pointHoverBorderWidth: 2,
       pointRadius: 1,
       pointHitRadius: 10,
@@ -56,12 +55,12 @@ $: data = {
       fill: false, // disable fill under curve 
       lineTension: 0.3,
       backgroundColor: 'rgba(184, 185, 210, .3)',
-      borderColor: 'rgb(35, 26, 136)',
+      borderColor: 'rgb(6, 182, 212)',
       borderCapStyle: 'butt',
       borderDash: [],
       borderDashOffset: 0.0,
       borderJoinStyle: 'miter',
-      pointBorderColor: 'rgb(35, 26, 136)',
+      pointBorderColor: 'rgb(6, 182, 212)',
       pointBackgroundColor: 'rgb(255, 255, 255)',
       pointBorderWidth: 10,
       pointHoverRadius: 5,

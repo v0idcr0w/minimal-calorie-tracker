@@ -29,11 +29,19 @@
 - [OK] Double Line chart showing your weight progress; and your calories progress over the weeks (only if there is more than 1 data point). https://github.com/SauravKanchan/svelte-chartjs 
 - [OK] Compare the users goals with their current progress in the Daily Log page (+ 0.5 kcal relative to goal etc...) 
 
-### TODO: DESIGN
-- Light mode and dark mode 
-- Home
-- Foods
-- Recipes
-- Meals 
-- Logs
-- Progress Charts 
+### TODO: UI BASICS
+- [OK] Foods (fix button sizes and input boxes for new food)
+- [OK] Recipes (copy the style of foods)
+- [OK] Meals (copy the style of foods)
+- Home 
+- [OK] Logs
+- [OK] Progress Charts
+- [OK] Navigation bar 
+
+### TODO: FIXES/OTHER STUFF
+- Fix removing id when the csv file is saved 
+- Menu to display chart data only for the last X days. 
+- Tooltips/help
+- Change weight goal instead of being lose to a target 
+
+https://tw-elements.com/

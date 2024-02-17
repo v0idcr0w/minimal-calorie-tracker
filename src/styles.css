@@ -1,3 +1,64 @@
+/*  Tailwindcss */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities'; 
+
+@layer components {
+    .icon-button {
+      @apply inline-block rounded-full bg-violet-600 p-2 uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-violet-800 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)];
+    }
+    .text-button {
+        @apply w-64 flex justify-center items-center rounded bg-white px-6 pb-2 pt-2.5 text-xs font-medium uppercase tracking-tighter leading-normal text-neutral-600 shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-white hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] disabled:cursor-not-allowed disabled:hover:shadow-[0_4px_9px_-4px_#3b71ca];
+    }
+}
+
+@layer base {
+    input[type='number']::-webkit-outer-spin-button,
+    input[type='number']::-webkit-inner-spin-button,
+    input[type='number'] {
+      -webkit-appearance: none;
+      margin: 0;
+      -moz-appearance: textfield !important;
+    }
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif; 
+}  
+
+.active {
+    color: #4C51BF; /* text-purple-600 */
+    border-color: #4C51BF; /* border-purple-600 */
+}
+
+.icon-button .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #000000;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    left: 100%; /* Position the tooltip to the right of the button */
+    top: 50%; /* Align the tooltip vertically with the button */
+    transform: translateY(-50%); /* Center the tooltip vertically */
+    margin-left: 10px; /* Add some space between the button and the tooltip */
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+  
+.icon-button:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+    background-color: #000000b2;
+}
+
+
+
+
+/* Text */
 .error {
     color: red;
     margin-top: 0.2rem;
