@@ -4,7 +4,13 @@
     import { foodsNormalized } from './store.js';
     import { toTitleCase } from './titleCase.js';
     import MaterialFloatingLabel from "./MaterialFloatingLabel.svelte";
-
+    import SvgOk from './SvgOk.svelte';
+    import SvgEdit from './SvgEdit.svelte'; 
+    import SvgCancel from './SvgCancel.svelte';
+    import SvgAdd from './SvgAdd.svelte'; 
+    import SvgTrash from './SvgTrash.svelte'; 
+    import SvgRemove from './SvgRemove.svelte'; 
+	import GradientButton from "./GradientButton.svelte";
     // props 
     export let recipe; 
     export let onDelete; 
@@ -101,112 +107,108 @@
 {#if renameActive}
     <input type="text" name="recipeName" placeholder="Recipe Name" bind:value={newRecipeName} class="w-1/2 text-center" />
     <!-- Accept changes button -->
-    <button class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 disabled:cursor-not-allowed " on:click={renameRecipe} disabled={!newRecipeName}>
-        <span class="relative transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
-            </span>
-    </button>
+    <GradientButton onClick={renameRecipe} disabled={!newRecipeName}>
+        <SvgOk />
+    </GradientButton>
 
     <!-- Reject changes button -->
-    <button class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300" on:click={() => renameActive = false }>
-        <span class="relative transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor" ><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
-        </span>
-      </button> 
+    <GradientButton onClick={() => renameActive = false }>
+        <SvgCancel />
+    </GradientButton>
 {/if}
 </h3>  
-<!-- Delete -->
+
+<!-- Delete button -->
 <div class="flex justify-center">
 <button class="icon-button mb-2 mx-2" on:click={onDelete}>
-    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+    <SvgTrash />
 </button>
 </div>
 
-<table class="table-auto mx-auto w-1/2">
-    <tr>
-        <td class="text-center" colspan="2">Serving size</td>
-        <td>
-            <!-- Edit button -->
-            <button class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 disabled:cursor-not-allowed " on:click={() => editServingSizeActive = !editServingSizeActive}>
-                <span class="relative transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0">
-                {#if !editServingSizeActive}
-                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
-                {:else}
-                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor" ><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
-                {/if}
-            </span>
-            </button>
-        </td>
-    </tr>
-    <tr>
-    {#if !editServingSizeActive}
-        <td colspan="2" class="text-center"> {recipe.serving_size} 
-         {recipe.unit} </td>
+<!-- RENDERING / EDITING SERVING SIZE -->
+<div class="flex items-center justify-center my-2">
+{#if !editServingSizeActive}
+    <p class="text-center text-sm mx-2">Serving size {recipe.serving_size} {recipe.unit}</p>
+{/if} 
+{#if !editServingSizeActive}
+    <GradientButton onClick={() => editServingSizeActive = !editServingSizeActive}>
+    <SvgEdit />  
+    </GradientButton>
     {:else}
-    <td class="text-center" colspan="2"> 
-    <div class="flex">
-    <input type="number" min=0 placeholder=0 bind:value={newServingSize} class="w-1/2 text-center" />  
-    <input type="text" placeholder="unit" bind:value={newUnit} class="w-1/2 text-center" /> 
-    </div>
-    </td> 
-    <td> <button class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 disabled:cursor-not-allowed" on:click={updateServingSize(newServingSize, newUnit)} disabled={!(newServingSize > 0 && newUnit)}>
-        <span class="relative transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
-            </span>
-    </button> </td>
-    {/if}
-    </tr>
-</table>
+    <GradientButton onClick={() => editServingSizeActive = !editServingSizeActive}>
+    <SvgCancel />
+    </GradientButton>
+{/if}
+</div>
 
-<!-- Ingredient list -->
+
+
+{#if editServingSizeActive}
+<div class="flex">
+    <div class="mr-2">
+    <MaterialFloatingLabel label="Serving size" bind:value={newServingSize} type="number" />
+    </div>
+    <MaterialFloatingLabel label="Measurement units" bind:value={newUnit} />
+</div>
+<div class="flex items-center justify-center">
+    <GradientButton onClick={() => updateServingSize(newServingSize, newUnit)} disabled={!(newServingSize > 0 && newUnit)}>
+        <SvgOk />
+    </GradientButton>
+</div>
+{/if}
+
+<!-- RENDERING / EDITING INGREDIENT LIST -->
 
 
 <ul class="w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg">
     {#each ingredients as ingredient, index (ingredient.id)}
 
-    <li class="w-full px-4 py-2 border-b border-gray-200 rounded-t-lg flex items-center text-left">
-        <button class="relative inline-flex items-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300" on:click={() => deleteIngredientFromRecipe(ingredient)}>
-            <span class="relative transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-440v-80h560v80H200Z"/></svg>
-            </span>
-            </button> 
+    <li class="w-full px-4 py-2 border-b border-gray-200 rounded-t-lg flex items-center justify-between text-left">
+        <div class="-me-2 -mb-2">
+        <GradientButton onClick={() => deleteIngredientFromRecipe(ingredient)}>
+            <SvgRemove />
+        </GradientButton>
+        </div>
 
+        <div class="flex items-center">
+        
+        <span class="inline-block mx-1 align-top">
+            {toTitleCase(ingredient.name)}
+        </span>
 
-            <span class="inline-block mx-1 align-top">
-                {toTitleCase(ingredient.name)}
-            </span>
-
-            
-            {#if editIngredientFlags[index]}
+        {#if editIngredientFlags[index]}
             <input class="w-8 text-center inline-block my-2 align-top" type="number" min=0 placeholder=0 bind:value={newIngredientAmounts[index]} />
             {:else}
             <span class="inline-block my-2 align-top">
             {ingredient.amount}
             </span>
-            {/if}
+        {/if}
 
             <span class="inline-block my-2 mx-1 align-top">
             {ingredient.unit}
             </span>
-    
-            <button class="relative inline-flex items-center justify-center p-0.5 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300" on:click={() => editIngredientFlags[index] = !editIngredientFlags[index]}>
-                <span class="relative transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0">
-                    {#if !editIngredientFlags[index]}
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
-                    {:else}
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor" ><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
-                    {/if}
-                </span>
-                </button>
-                
-                
-        {#if editIngredientFlags[index]}
-        <button class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300" on:click={updateIngredientAmount(ingredient, newIngredientAmounts[index])}>
-            <span class="relative transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
-            </span>
-            </button>
+        </div> 
+
+        <div class="-mb-2 flex items-center">
+        {#if !editIngredientFlags[index]}
+            <GradientButton onClick={() => editIngredientFlags[index] = !editIngredientFlags[index]}>
+                <SvgEdit />
+            </GradientButton> 
+            {:else}
+            <GradientButton onClick={() => editIngredientFlags[index] = !editIngredientFlags[index]}>
+                <SvgCancel />
+            </GradientButton>
         {/if}
+        
+        
+        <div class="-me-2">
+        {#if editIngredientFlags[index]}
+        <GradientButton onClick={() => updateIngredientAmount(ingredient, newIngredientAmounts[index])} disabled={!(newIngredientAmounts[index] >= 0)}>
+            <SvgOk />
+        </GradientButton>  
+        {/if}
+        </div>
+    </div>
     </li>
     {/each}
 </ul>
@@ -215,16 +217,16 @@
 <div class="flex justify-center">
 <button class="icon-button my-2" on:click={() => dropdownActive = !dropdownActive}>
     {#if !dropdownActive}
-    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+    <SvgAdd />
     {:else}
-    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
+    <SvgCancel />
     {/if}
 </button>
 
 
 {#if dropdownActive && selectedFoodId}
-<button class="icon-button my-2 mx-2" on:click={ addIngredientToRecipe(selectedFood, selectedFoodAmount) } disabled={!( selectedFoodAmount >= 0)}>
-    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
+<button class="icon-button my-2 mx-2" on:click={() => addIngredientToRecipe(selectedFood, selectedFoodAmount) } disabled={!( selectedFoodAmount >= 0)}>
+    <SvgOk />
 </button>
 {/if}
 </div>
@@ -243,7 +245,7 @@
     {#if selectedFoodId}
     <div class="flex flex-col items-center mt-4">
         <div class="block text-sm">
-    <MaterialFloatingLabel label="Amount ({selectedFood.unit})" bind:value={selectedFoodAmount} />
+    <MaterialFloatingLabel label="Amount ({selectedFood.unit})" bind:value={selectedFoodAmount} type="number" />
     </div>
     </div>
     {/if}

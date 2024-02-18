@@ -3,6 +3,9 @@
     import { foodsNormalized } from './store.js';
     import MaterialFloatingLabel from './MaterialFloatingLabel.svelte';
     import MaterialFloatingLabelError from './MaterialFloatingLabelError.svelte';
+    import SvgOk from './SvgOk.svelte'; 
+    import SvgCancel from './SvgCancel.svelte'; 
+    import SvgAdd from './SvgAdd.svelte'; 
 
     let active = false; // track if the button is clicked (new food is being added by the user)
 
@@ -42,9 +45,6 @@
     // Make a validation check 
     if (validateNewFood(newFood)) {
         // Invoke backend code to add the new food to the database
-
-        newFood = { ...newFood, serving_size: Number(newFood.serving_size), normalized_calories: Number(newFood.normalized_calories), normalized_protein: Number(newFood.normalized_protein), normalized_carbohydrate: Number(newFood.normalized_carbohydrate), normalized_fat: Number(newFood.normalized_fat)}; 
-
         await invoke('add_new_food_normalized', { newFood });
 
         // Clear the input fields and reset the newFood object
@@ -52,8 +52,8 @@
 
         // Refresh the list of foods
         foodsNormalized.set(await invoke('get_foods_normalized'));
-        }
         active = false; 
+        }
     }
 
 </script>
@@ -62,9 +62,9 @@
     <div class="mt-4 mb-4">
         <button on:click={() => active = !active } class="text-button">
             {#if !active}
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg> New food 
+            <SvgAdd /> New food 
             {:else}
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg> Cancel
+            <SvgCancel /> Cancel
             {/if}
         </button>
     </div>
@@ -74,57 +74,57 @@
             <table class="mx-auto">
                 <tr>
                     {#if !validationError.name}
-                    <td colspan="2"><MaterialFloatingLabel label="Food name"  bind:value={newFood.name} /></td>
+                    <td colspan="2"><MaterialFloatingLabel label="Food name"  bind:value={newFood.name} type="text" /></td>
                     {:else}
-                    <td colspan="2"><MaterialFloatingLabelError error="No name" errorMessage={validationError.name} bind:value={newFood.name} /></td>
+                    <td colspan="2"><MaterialFloatingLabelError error="No name" errorMessage={validationError.name} bind:value={newFood.name} type="text" /></td>
                     {/if}
                 </tr>
 
                 <tr>
                     {#if !validationError.serving_size}
-                    <td> <MaterialFloatingLabel label="Serving size" bind:value={newFood.serving_size} /> </td>
+                    <td> <MaterialFloatingLabel label="Serving size" bind:value={newFood.serving_size} type="number" /> </td>
                     {:else}
-                    <td> <MaterialFloatingLabelError  error="No serving size" errorMessage={validationError.serving_size} bind:value={newFood.serving_size} /> </td>
+                    <td> <MaterialFloatingLabelError  error="No serving size" errorMessage={validationError.serving_size} bind:value={newFood.serving_size} type="number" /> </td>
                     {/if}
                     {#if !validationError.unit}
-                    <td> <MaterialFloatingLabel label="Measurement unit" bind:value={newFood.unit}  /> </td>
+                    <td> <MaterialFloatingLabel label="Measurement unit" bind:value={newFood.unit} type="text" /> </td>
                     {:else} 
-                    <td> <MaterialFloatingLabelError error="No unit" errorMessage={validationError.unit} bind:value={newFood.unit} /> </td>
+                    <td> <MaterialFloatingLabelError error="No unit" errorMessage={validationError.unit} bind:value={newFood.unit} type="text" /> </td>
                     {/if}
                 </tr>
 
                 <tr>
                     {#if !validationError.normalized_calories}
-                    <td> <MaterialFloatingLabel label="Calories (kcal)" bind:value={newFood.normalized_calories} />  </td>
+                    <td> <MaterialFloatingLabel label="Calories (kcal)" bind:value={newFood.normalized_calories} type="number" />  </td>
                     {:else}
-                    <td> <MaterialFloatingLabelError bind:value={newFood.normalized_calories} error="Invalid amount" errorMessage={validationError.normalized_calories} /> </td>
+                    <td> <MaterialFloatingLabelError bind:value={newFood.normalized_calories} error="Invalid amount" errorMessage={validationError.normalized_calories} type="number" /> </td>
                     {/if}
                     
                     {#if !validationError.normalized_protein}
-                    <td> <MaterialFloatingLabel label="Protein amount (g)" bind:value={newFood.normalized_protein}/> </td>
+                    <td> <MaterialFloatingLabel label="Protein amount (g)" bind:value={newFood.normalized_protein} type="number" /> </td>
                     {:else}
-                    <td> <MaterialFloatingLabelError bind:value={newFood.normalized_protein} error="Invalid amount" errorMessage={validationError.normalized_protein} /> </td>
+                    <td> <MaterialFloatingLabelError bind:value={newFood.normalized_protein} error="Invalid amount" errorMessage={validationError.normalized_protein} type="number" /> </td>
                     {/if}
                 </tr>
 
                 <tr>
                     {#if !validationError.normalized_carbohydrate}
-                    <td> <MaterialFloatingLabel label="Carbohydrate amount (g)" bind:value={newFood.normalized_carbohydrate} /> </td> 
+                    <td> <MaterialFloatingLabel label="Carbohydrate amount (g)" bind:value={newFood.normalized_carbohydrate}  type="number" /> </td> 
                     {:else}
-                    <td> <MaterialFloatingLabelError bind:value={newFood.normalized_carbohydrate} error="Invalid amount" errorMessage={validationError.normalized_carbohydrate} /> </td>
+                    <td> <MaterialFloatingLabelError bind:value={newFood.normalized_carbohydrate} error="Invalid amount" errorMessage={validationError.normalized_carbohydrate}  type="number" /> </td>
                     {/if}
                     
                     {#if !validationError.normalized_fat}
-                    <td> <MaterialFloatingLabel label="Fat amount (g)" bind:value={newFood.normalized_fat} /> </td>
+                    <td> <MaterialFloatingLabel label="Fat amount (g)" bind:value={newFood.normalized_fat}  type="number"  /> </td>
                     {:else}
-                    <td> <MaterialFloatingLabelError bind:value={newFood.normalized_fat} error="Invalid amount" errorMessage={validationError.normalized_fat} /> </td>
+                    <td> <MaterialFloatingLabelError bind:value={newFood.normalized_fat} error="Invalid amount" errorMessage={validationError.normalized_fat}  type="number"  /> </td>
                     {/if}
                 </tr>
             </table>
         </div>
             <div>
                 <button on:click={addNewFood} class="text-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg> OK
+                    <SvgOk /> OK
                 </button>
             </div>
       

@@ -141,7 +141,7 @@ impl Ingredient {
 
 impl UserGoal {
     pub async fn update_weight(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
-        sqlx::query!("UPDATE user_goals SET weight = ?, weight_rate = ? WHERE id = ?", self.weight, self.weight_rate, self.id)
+        sqlx::query!("UPDATE user_goals SET weight = ? WHERE id = ?", self.weight, self.id)
         .execute(pool)
         .await?;        
 

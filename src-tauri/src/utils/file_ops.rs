@@ -4,7 +4,7 @@ use super::super::models::{food_normalized::FoodNormalized, food_normalized::Foo
 pub async fn write_csv_file(file_path: String, content: Vec<FoodNormalized>) -> Result<(), std::io::Error> {
     let mut writer = Writer::from_path(file_path)?; 
     for food in content {
-        writer.serialize(food)?; 
+        writer.serialize(FoodNormalizedCsv::from(food))?; 
     }
     writer.flush()?; 
 

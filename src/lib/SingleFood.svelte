@@ -1,6 +1,11 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri'; 
     import { toTitleCase } from './titleCase.js'; 
+    import SvgTrash from './SvgTrash.svelte'; 
+    import SvgOk from './SvgOk.svelte';
+    import SvgEdit from './SvgEdit.svelte'; 
+    import SvgCancel from './SvgCancel.svelte'; 
+    import GradientButton from './GradientButton.svelte'; 
 
     // props 
     export let foodNormalized; 
@@ -37,31 +42,28 @@
     {#if editableName}
     <input name="name" type="text" bind:value={updatedFood.name} placeholder={foodNormalized.name} class="w-1/2" />
     <!-- Accept changes button -->
-    <button class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300" on:click={updateFoodName(foodNormalized, updatedFood.name)}>
-      <span class="relative transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0">
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
-        </span>
-    </button>
+    <GradientButton onClick={() => {updateFoodName(foodNormalized, updatedFood.name)}}>
+      <SvgOk />
+    </GradientButton>
 
     <!-- Cancel changes button -->
-    <button class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300" on:click={() => editableName = !editableName}>
-      <span class="relative transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0">
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor" ><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
-      </span>
-    </button> 
+    <GradientButton onClick={() => editableName = !editableName}>
+      <SvgCancel />
+    </GradientButton>
     {/if}
 </h3> 
+
     <!-- Button that controls editing the rest of the fields -->
     <p>
       <button class="icon-button" on:click={() => enableEditing(foodNormalized) }>
         {#if !editableFields}
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
+        <SvgEdit />
         {:else}
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor" ><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
+        <SvgCancel /> 
         {/if}
       </button> 
       <button class="icon-button mb-2 mx-2" on:click={() => onDelete(foodNormalized)}>
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+        <SvgTrash />
       </button> 
     </p>
 
@@ -126,7 +128,7 @@
       </tr>
     </table>
       <button class="icon-button" on:click={() => updateFood(updatedFood)}>
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
+        <SvgOk />
     </button> 
 
     {/if}

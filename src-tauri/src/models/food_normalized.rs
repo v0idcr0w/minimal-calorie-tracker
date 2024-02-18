@@ -13,9 +13,9 @@ pub struct FoodNormalized {
     pub normalized_calories: f64
 }
 
-#[derive(Debug, Deserialize)] 
+#[derive(Debug, Deserialize, Serialize)] 
 pub struct FoodNormalizedCsv {
-    // this struct is the same as the previous struct, but it's used to deserialize the CSV file, and doesn't have an id. 
+    // this struct is the same as the previous struct, but it's used to serialize/deserialize the CSV file, and doesn't have an id. 
     pub name: String, 
     pub serving_size: f64, 
     pub unit: String, 
@@ -31,3 +31,8 @@ impl FoodNormalized {
     }
 }
 
+impl From<FoodNormalized> for FoodNormalizedCsv {
+    fn from(food: FoodNormalized) -> Self {
+        Self { name: food.name, serving_size: food.serving_size, unit: food.unit, normalized_protein: food.normalized_protein, normalized_carbohydrate: food.normalized_carbohydrate, normalized_fat: food.normalized_fat, normalized_calories: food.normalized_calories }
+    }
+}

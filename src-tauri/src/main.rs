@@ -317,7 +317,7 @@ async fn get_user_goal(pool: tauri::State<'_,Database>) -> Result<UserGoal, Erro
   match result {
     Ok(goal) => Ok(goal), 
     Err(_) => {
-      let new_goal = UserGoal::new("maintain".to_string(), 0.0, 0.0, 0.0, 0.0, 2000.0); 
+      let new_goal = UserGoal::new(0.0, 0.0, 0.0, 0.0, 2000.0); 
       new_goal.create_entry(&pool.0).await?;
       Ok(new_goal)
     }

@@ -5,6 +5,12 @@
     import { toTitleCase } from "./titleCase";
     import { foodsNormalized, recipes } from './store.js';
     import Dropdown from "./Dropdown.svelte";
+    import GradientButton from "./GradientButton.svelte"; 
+    import SvgOk from './SvgOk.svelte';
+    import SvgEdit from './SvgEdit.svelte';
+    import SvgCancel from './SvgCancel.svelte';
+    import SvgAdd from './SvgAdd.svelte'; 
+    import SvgRemove from './SvgRemove.svelte'; 
 
     // props 
     export let mealId; 
@@ -68,15 +74,18 @@
 <div>
     <ul class="w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg">    
     {#each foods as food, index (food.id)}
-    <li class="w-full px-2 py-2 border-b border-gray-200 rounded-t-lg flex items-center text-left">
-        <button class="relative inline-flex items-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300" on:click={deleteFood(food)}>
-            <span class="relative transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-440v-80h560v80H200Z"/></svg>
-            </span>
-        </button>
+    <li class="w-full px-2 py-2 border-b border-gray-200 rounded-t-lg flex items-center justify-between text-left">
+        <div class="-me-2 -mb-2">
+        <GradientButton onClick={() => deleteFood(food)}>
+            <SvgRemove /> 
+        </GradientButton>
+        </div>
+
+        <div class="flex items-center">
         <span class="inline-block mx-1 align-top">
             {toTitleCase(food.name)}
         </span>
+        
 
         {#if !editableArray[index]}
         <span class="inline-block my-2 align-top">{food.amount}</span>
@@ -87,25 +96,30 @@
         <span class="inline-block my-2 mx-1 align-top">
             {food.unit}
         </span>
+        </div>
 
-        <button class="relative inline-flex items-center justify-center p-0.5 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300" on:click={() => editableArray[index] = !editableArray[index] }>
-            <span class="relative transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0">
-            {#if !editableArray[index]}
-            
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
-            {:else} 
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor" ><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
-            {/if}
-        </span>
-        </button>
-
-        {#if editableArray[index]}
-        <button class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300" on:click={updateFood(food, newAmountArray[index])} disabled={!(newAmountArray[index] >= 0)} >
-            <span class="relative transition-all ease-in duration-75 bg-white rounded-md group-hover:bg-opacity-0">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
-            </span>
-        </button>
+        <div class="-mb-2 flex items-center">
+        {#if !editableArray[index]}
+        
+        <GradientButton onClick={() => editableArray[index] = !editableArray[index]}>
+            <SvgEdit /> 
+        </GradientButton>
+        
+        {:else}
+        <GradientButton onClick={() => editableArray[index] = !editableArray[index]}>
+            <SvgCancel />
+        </GradientButton>
         {/if}
+        
+    
+        <div class="-me-2">
+        {#if editableArray[index]}
+        <GradientButton onClick={() => updateFood(food, newAmountArray[index])} disabled={!(newAmountArray[index] >= 0)}>
+            <SvgOk />
+        </GradientButton>  
+        {/if}
+        </div>
+        </div>
 
        </li> 
     {/each}
@@ -118,9 +132,9 @@
 {dropdownActiveFood = !dropdownActiveFood;
  dropdownActiveRecipe = false} }>
     {#if !dropdownActiveFood}
-    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg> Add food 
+    <SvgAdd /> food 
     {:else}
-    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg> Cancel
+    <SvgCancel /> Cancel
     {/if}
 </button>
 
@@ -130,9 +144,9 @@
 {dropdownActiveRecipe = !dropdownActiveRecipe;
 dropdownActiveFood = false} }>
     {#if !dropdownActiveRecipe}
-    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg> Add recipe 
+    <SvgAdd /> recipe 
     {:else}
-    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg> Cancel
+    <SvgCancel /> Cancel
     {/if}
 </button>
 </div>
