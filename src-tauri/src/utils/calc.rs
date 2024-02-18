@@ -3,7 +3,7 @@ use crate::models::{food::Food, ingredient::Ingredient, macros_total::MacrosTota
 
 
 pub async fn compute_meal_total(meal_id: i32, pool: &SqlitePool) -> MacrosTotal {
-    let foods: Vec<Food> = Meal::get_foods_by_id(meal_id, &pool).await.unwrap(); 
+    let foods: Vec<Food> = Food::get_by_meal_id(meal_id, &pool).await.unwrap(); 
 
     let mut protein = 0.0; 
     let mut carbohydrate = 0.0;

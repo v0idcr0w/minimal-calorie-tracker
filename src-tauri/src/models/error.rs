@@ -4,7 +4,9 @@ use serde::Serialize;
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Database Error: {0}")]
-    DatabaseError(#[from] sqlx::Error)
+    DatabaseError(#[from] sqlx::Error),
+    #[error("IO Error: {0}")] 
+    IOError(#[from] std::io::Error),
 }
 
 impl Serialize for Error {

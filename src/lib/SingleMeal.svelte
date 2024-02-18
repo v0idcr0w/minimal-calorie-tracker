@@ -1,9 +1,16 @@
 <script>
     // this part contains the logic related to rendering foods, editing and deleting a food from a given meal. 
     import { invoke } from "@tauri-apps/api";
-    import { onMount, onDestroy } from "svelte";
+    import { onMount } from "svelte";
     import { toTitleCase } from "./titleCase";
+    import { foodsNormalized, recipes } from './store.js';
     import Dropdown from "./Dropdown.svelte";
+    import GradientButton from "./GradientButton.svelte"; 
+    import SvgOk from './SvgOk.svelte';
+    import SvgEdit from './SvgEdit.svelte';
+    import SvgCancel from './SvgCancel.svelte';
+    import SvgAdd from './SvgAdd.svelte'; 
+    import SvgRemove from './SvgRemove.svelte'; 
 
     // props 
     export let mealId; 
@@ -16,7 +23,8 @@
     let computedMacros = {}; 
 
     // button control
-    let dropdownActive = false; 
+    let dropdownActiveFood = false; 
+    let dropdownActiveRecipe = false; 
 
     async function refreshFoods() {
         foods = await invoke('get_foods_by_meal_id', { mealId }); 
@@ -26,6 +34,12 @@
     }
 
     onMount(async () => {
+        if ($foodsNormalized.length === 0) {
+            foodsNormalized.set(await invoke('get_foods_normalized')); 
+        }
+        if ($recipes.length === 0) {
+            recipes.set(await invoke('get_all_recipes'));
+        }
         await refreshFoods();  
     }); 
 
@@ -46,54 +60,113 @@
         // dispatch this event when a new food gets added
         await refreshFoods();  
         await onUpdate(); 
-        dropdownActive = false; 
+        dropdownActiveFood = false; 
+    }
+
+    async function addNewRecipe(selectedId, amount) {
+        await invoke('add_new_food_from_recipe', { selectedId, amount, mealId })
+        await refreshFoods();  
+        await onUpdate(); 
+        dropdownActiveRecipe = false; 
     }
 </script>
 
+<div>
+    <ul class="w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg">    
+    {#each foods as food, index (food.id)}
+    <li class="w-full px-2 py-2 border-b border-gray-200 rounded-t-lg flex items-center justify-between text-left">
+        <div class="-me-2 -mb-2">
+        <GradientButton onClick={() => deleteFood(food)}>
+            <SvgRemove /> 
+        </GradientButton>
+        </div>
 
-<table>
-{#each foods as food, index (food.id)} 
-    <tr>
-        <td>
-            <button on:click={deleteFood(food)}>-</button>
-        </td>
-        <td>{toTitleCase(food.name)}</td>
+        <div class="flex items-center">
+        <span class="inline-block mx-1 align-top">
+            {toTitleCase(food.name)}
+        </span>
         
+
         {#if !editableArray[index]}
-            <td>{food.amount}</td>
+        <span class="inline-block my-2 align-top">{food.amount}</span>
         {:else}
-            <td><input type="number" min=0 bind:value={newAmountArray[index]} placeholder={food.amount} style="width: 3em" /></td>
+        <input type="number" min=0 bind:value={newAmountArray[index]} placeholder={food.amount} class="w-8 text-center inline-block my-2 align-top"  />
         {/if}
-        <td>{food.unit}</td>
-        <td>
-            <button on:click={() => editableArray[index] = !editableArray[index] }>{ editableArray[index] ? "Cancel" : "Edit"}</button>
-        </td>
-        <td>{food.calories.toFixed(0)}</td>
-        <td>kcal</td>
+
+        <span class="inline-block my-2 mx-1 align-top">
+            {food.unit}
+        </span>
+        </div>
+
+        <div class="-mb-2 flex items-center">
+        {#if !editableArray[index]}
+        
+        <GradientButton onClick={() => editableArray[index] = !editableArray[index]}>
+            <SvgEdit /> 
+        </GradientButton>
+        
+        {:else}
+        <GradientButton onClick={() => editableArray[index] = !editableArray[index]}>
+            <SvgCancel />
+        </GradientButton>
+        {/if}
+        
+    
+        <div class="-me-2">
         {#if editableArray[index]}
-        <td>
-            <button on:click={updateFood(food, newAmountArray[index])} disabled={!(newAmountArray[index] >= 0)} >Ok</button>
-        </td>
+        <GradientButton onClick={() => updateFood(food, newAmountArray[index])} disabled={!(newAmountArray[index] >= 0)}>
+            <SvgOk />
+        </GradientButton>  
         {/if}
-    </tr>
+        </div>
+        </div>
 
-{/each}
-</table>
+       </li> 
+    {/each}
+</ul>
 
 
+<div class="flex items-center justify-center my-4">
 <!-- Dropdown button for foods list -->
-<button on:click={() => dropdownActive = !dropdownActive}>{dropdownActive ? "Cancel" : "+"}</button>
-{#if dropdownActive}
-    <Dropdown onAdd={addNewFood} />
-{/if}
+<button class="text-button w-32 p-1 mx-2" on:click={() => 
+{dropdownActiveFood = !dropdownActiveFood;
+ dropdownActiveRecipe = false} }>
+    {#if !dropdownActiveFood}
+    <SvgAdd /> food 
+    {:else}
+    <SvgCancel /> Cancel
+    {/if}
+</button>
+
+
+<!-- Dropdown button for recipe list -->
+<button class="text-button w-32 p-1 mx-2" on:click={() => 
+{dropdownActiveRecipe = !dropdownActiveRecipe;
+dropdownActiveFood = false} }>
+    {#if !dropdownActiveRecipe}
+    <SvgAdd /> recipe 
+    {:else}
+    <SvgCancel /> Cancel
+    {/if}
+</button>
+</div>
+
+
+    {#if dropdownActiveFood}
+        <Dropdown onAdd={addNewFood} options={$foodsNormalized} />
+    {/if}
+
+    {#if dropdownActiveRecipe}
+        <Dropdown onAdd={addNewRecipe} options={$recipes} />
+    {/if}
 
 
 <!-- Table containing the total amount of macros for the meal -->
 {#if Object.keys(computedMacros).length !== 0}
-<table>
+<table class="mx-auto text-sm">
     <thead>
         <tr>
-            <th colspan="3">Total</th>
+            <th colspan="3">Meal totals</th>
         </tr>
     </thead>
     <tr>
@@ -119,3 +192,5 @@
 </table>
 
 {/if}
+
+</div>

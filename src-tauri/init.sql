@@ -3,10 +3,13 @@ DROP TABLE IF EXISTS foods;
 DROP TABLE IF EXISTS meals;
 DROP TABLE IF EXISTS daily_logs;
 DROP TABLE IF EXISTS user_goal; 
+DROP TABLE IF EXISTS recipes; 
+DROP TABLE IF EXISTS ingredients; 
 
-CREATE TABLE user_goal (
+
+CREATE TABLE user_goals (
     id INTEGER PRIMARY KEY, 
-    weight REAL, 
+    weight TEXT, 
     weight_rate REAL, 
     protein REAL, 
     carbohydrate REAL, 
@@ -43,9 +46,21 @@ CREATE TABLE meals (
     FOREIGN KEY (log_id) REFERENCES daily_logs(id) ON DELETE CASCADE
 ); 
 
+CREATE TABLE recipes (
+    id INTEGER PRIMARY KEY, 
+    name TEXT NOT NULL,
+    serving_size REAL,
+    unit TEXT,  
+    protein REAL,
+    carbohydrate REAL,
+    fat REAL, 
+    calories REAL
+);
+
 CREATE TABLE foods (
     id INTEGER PRIMARY KEY, 
-    foods_normalized_id INTEGER NOT NULL, 
+    food_normalized_id INTEGER, 
+    recipe_id INTEGER, 
     meal_id INTEGER NOT NULL, 
     name TEXT NOT NULL, 
     unit TEXT NOT NULL, 
@@ -54,6 +69,22 @@ CREATE TABLE foods (
     carbohydrate REAL NOT NULL,
     fat REAL NOT NULL, 
     calories REAL NOT NULL,
-    FOREIGN KEY (foods_normalized_id) REFERENCES foods_normalized(id) ON DELETE CASCADE, 
+    FOREIGN KEY (food_normalized_id) REFERENCES foods_normalized(id) ON DELETE CASCADE, 
+    FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
     FOREIGN KEY (meal_id) REFERENCES meals(id) ON DELETE CASCADE
+);
+
+CREATE TABLE ingredients (
+    id INTEGER PRIMARY KEY, 
+    recipe_id INTEGER NOT NULL,
+    food_normalized_id INTEGER NOT NULL,  
+    name TEXT NOT NULL, 
+    amount REAL NOT NULL, 
+    unit TEXT NOT NULL, 
+    protein REAL NOT NULL,
+    carbohydrate REAL NOT NULL,
+    fat REAL NOT NULL, 
+    calories REAL NOT NULL,
+    FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
+    FOREIGN KEY (food_normalized_id) REFERENCES foods_normalized(id) ON DELETE CASCADE
 );

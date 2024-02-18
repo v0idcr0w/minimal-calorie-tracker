@@ -6,3 +6,4 @@ pub mod error;
 pub mod macros_total; 
 pub mod ingredient;
 pub mod recipe;
+pub mod user_goal; 

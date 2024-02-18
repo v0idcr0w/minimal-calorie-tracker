@@ -1,6 +1,6 @@
 use sqlx::SqlitePool;
 
-use super::super::models::{food::Food, meal::Meal, food_normalized::FoodNormalized, daily_log::DailyLog, ingredient::Ingredient, recipe::Recipe, macros_total::MacrosTotal}; 
+use super::super::models::{food::Food, meal::Meal, food_normalized::FoodNormalized, daily_log::DailyLog, ingredient::Ingredient, recipe::Recipe, macros_total::MacrosTotal, user_goal::UserGoal}; 
 
 impl Food {
     pub fn update(&mut self, new_amount: f64) {
@@ -33,7 +33,6 @@ impl FoodNormalized {
     }
     pub fn update(&mut self, new_food_normalized: FoodNormalized) {
         // new_food_normalized ceases to exist after this block ends (move) 
-        self.name = new_food_normalized.name; 
         self.unit = new_food_normalized.unit; 
         self.serving_size = new_food_normalized.serving_size; 
         self.normalized_protein = new_food_normalized.normalized_protein; 
@@ -132,6 +131,35 @@ impl Ingredient {
     }
     pub async fn update_entry(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
         sqlx::query!("UPDATE ingredients SET amount = ?, protein = ?, carbohydrate = ?, fat = ?, calories = ? WHERE id = ?", self.amount, self.protein, self.carbohydrate, self.fat, self.calories, self.id)
+        .execute(pool)
+        .await?;        
+
+        println!("[INFO] Updated entry with id = {}", self.id); 
+        Ok(())
+    }
+}
+
+impl UserGoal {
+    pub async fn update_weight(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        sqlx::query!("UPDATE user_goals SET weight = ? WHERE id = ?", self.weight, self.id)
+        .execute(pool)
+        .await?;        
+
+        println!("[INFO] Updated entry with id = {}", self.id); 
+        Ok(())
+    }
+
+    pub async fn update_calories(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        sqlx::query!("UPDATE user_goals SET calories = ? WHERE id = ?", self.calories, self.id)
+        .execute(pool)
+        .await?;        
+
+        println!("[INFO] Updated entry with id = {}", self.id); 
+        Ok(())
+    }
+
+    pub async fn update_macros(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        sqlx::query!("UPDATE user_goals SET protein = ?, carbohydrate = ?, fat = ? WHERE id = ?", self.protein, self.carbohydrate, self.fat, self.id)
         .execute(pool)
         .await?;        
 

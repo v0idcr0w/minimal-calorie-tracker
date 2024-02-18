@@ -2,6 +2,7 @@ use sqlx::{SqlitePool, Sqlite, migrate::MigrateDatabase};
 // database initialization 
 pub const DB_URL: &str = "sqlite://database.db";
 
+#[allow(dead_code)]
 pub async fn create_db() {
     if !Sqlite::database_exists(DB_URL).await.unwrap_or(false) {
         println!("Creating database {}", DB_URL);

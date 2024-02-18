@@ -3,7 +3,7 @@
     "beforeBuildCommand": "npm run build",
     "beforeDevCommand": "npm run dev",
     "devPath": "http://localhost:5173",
-    "distDir": "../build"
+    "distDir": "../.svelte-kit/output"
   },
   "package": {
     "productName": "Minimal Calorie Tracker",
@@ -11,7 +11,14 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": false, 
+      "dialog": {
+        "all": true,
+        "confirm": true,
+        "message": true, 
+        "open": true, 
+        "save": true 
+      }
     },
     "bundle": {
       "active": true,
@@ -28,7 +35,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.minimal-calorie-tracker.app",
       "longDescription": "",
       "macOS": {
         "entitlements": null,

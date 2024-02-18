@@ -1,12 +1,21 @@
 <script>
     import { invoke } from '@tauri-apps/api/tauri'
+    import { confirm } from '@tauri-apps/api/dialog';
     import { onMount } from 'svelte'
     import { toTitleCase } from './titleCase.js';
     import { dailyTotals, today, logId } from './store.js'; 
     import SingleMeal from './SingleMeal.svelte'; 
+	import MaterialFloatingLabel from './MaterialFloatingLabel.svelte';
+    import SvgOk from './SvgOk.svelte';
+    import SvgCancel from './SvgCancel.svelte';
+    import SvgAdd from './SvgAdd.svelte'; 
+    import SvgTrash from './SvgTrash.svelte';
 
     const todayFormatted = $today.toISOString().split('T')[0];
+
     dailyTotals.set({calories: 0, protein: 0, carbohydrate: 0, fat: 0}); 
+    $: totalMacros = $dailyTotals.protein + $dailyTotals.carbohydrate + $dailyTotals.fat; 
+    $: macros = [$dailyTotals.protein / totalMacros * 100, $dailyTotals.carbohydrate / totalMacros * 100, $dailyTotals.fat / totalMacros * 100]; 
     
     let meals = []; 
     let newMeal = {}; 
@@ -17,6 +26,7 @@
         meals = await invoke('get_meals_by_log_id', { logId: $logId });
         meals.sort((a, b) => new Date(b.entry_timestamp) - new Date(a.entry_timestamp));
         mealIds = meals.map((obj) => obj.id); 
+        newMeal = {id: 0, log_id: $logId, name: '', entry_timestamp: ''};
     }
 
     async function updateTotals() {
@@ -37,6 +47,8 @@
     }
 
     async function deleteMeal(meal) {
+        const confirmed = await confirm('This action cannot be reverted. Are you sure?', { title: 'Confirm', type: 'info' });
+        if (!confirmed) return;
         await invoke('delete_meal', { meal });
         await refreshMeals();
         await updateTotals(); 
@@ -52,8 +64,31 @@
 
 </script>
 
-<!-- Total calories and macronutrients (sum of all meals) -->
-<table>
+<div class="mx-4">
+
+<div class="flex flex-col items-center">
+<!-- Meal creation -->
+    <div class="mb-4">
+    <button class="text-button" on:click={() => createMealActive = !createMealActive}>
+        {#if !createMealActive }
+        <SvgAdd /> New meal 
+        {:else}
+        <SvgCancel /> Cancel
+        {/if}
+    </button>
+    </div>
+
+{#if createMealActive}
+<MaterialFloatingLabel label="Meal type" bind:value={newMeal.name} />
+    <div class="mb-4">
+    <button class="text-button" on:click={addNewMeal(newMeal)}>
+        <SvgOk /> OK
+    </button>
+    </div>
+{/if}
+</div>
+
+<table class="mx-auto tracking-tighter text-sm mb-2">
     <thead>
         <tr>
             <th colspan="3">Total for {todayFormatted}</th>
@@ -81,25 +116,20 @@
     </tr>
 </table>
 
-<!-- Meal creation -->
-<button on:click={() => createMealActive = !createMealActive}>{ createMealActive ? "Cancel" : "Create Meal" }</button>
-
-{#if createMealActive}
-<input name="type" placeholder="Meal type" bind:value={newMeal.name} />
-<button on:click={addNewMeal(newMeal)}>Confirm</button>
-{/if}
-<br />
-
-{#each meals as meal, index (meal.id) } 
-
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+    {#each meals as meal, index (meal.id) } 
+    <div class="block w-full text-center tracking-tighter rounded-lg bg-white p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]">
 <!-- Delete meal -->
-<h3>{toTitleCase(meal.name)} 
-<button on:click={deleteMeal(meal)}>Delete</button>
-</h3> 
+    <h3 class="text-neutral-700 text-xl m-4 font-bold">{toTitleCase(meal.name)} 
+    </h3> 
+    <button class="icon-button mb-4" on:click={deleteMeal(meal)}>
+        <SvgTrash />
+    </button>
 
 <!-- render all foods associated with this meal -->
-<SingleMeal mealId={meal.id} onUpdate={updateTotals} />
-
-
-
+    <SingleMeal mealId={meal.id} onUpdate={updateTotals} />
+    </div>
 {/each} 
+</div>
+
+</div>

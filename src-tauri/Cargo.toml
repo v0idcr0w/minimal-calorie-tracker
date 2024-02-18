@@ -19,10 +19,11 @@ serde_json = "1.0"
 thiserror = "1.0.24"
 chrono = {version = "0.4.31", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.5.4", features = [] }
+tauri = { version = "1.5.4", features = ["dialog-all"] }
 sqlx = {version = "0.7.3", features = ["sqlite", "runtime-tokio", "macros", "chrono", "migrate"] }
 sqlx-cli = {version = "0.7.3", features = ["sqlite"] }
 tokio = { version = "1.20.0", features = ["macros"] }
+csv = "1.3.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

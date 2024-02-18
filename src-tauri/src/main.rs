@@ -9,11 +9,10 @@ mod database;
 mod utils; 
 mod tests; 
 
-use models::food;
 use sqlx::SqlitePool; 
 use chrono::Local; 
-use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog, error::Error, macros_total::MacrosTotal, recipe::Recipe, ingredient::Ingredient}; 
-use crate::utils::{db, calc}; 
+use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog, error::Error, macros_total::MacrosTotal, recipe::Recipe, ingredient::Ingredient, user_goal::UserGoal}; 
+use crate::utils::{db, calc, file_ops}; 
 
 struct Database(SqlitePool); 
 
@@ -36,6 +35,7 @@ async fn main() -> Result<(), sqlx::Error> {
       add_new_meal,
       delete_meal,
       add_new_food,
+      add_new_food_from_recipe,
       delete_food,
       update_food,
       compute_meal_macros,
@@ -52,7 +52,13 @@ async fn main() -> Result<(), sqlx::Error> {
       update_recipe_serving_size,
       get_ingredients_by_recipe_id, 
       update_ingredient_amount,
-      delete_ingredient_from_recipe])
+      delete_ingredient_from_recipe, 
+      get_user_goal, 
+      update_weight_goal,
+      update_calories_goal, 
+      update_macros_goal,
+      write_foods_file, 
+      read_foods_file])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 
@@ -106,7 +112,7 @@ async fn get_meals_by_log_id(log_id: i32, pool: tauri::State<'_,Database>) -> Re
 
 #[tauri::command]
 async fn get_foods_by_meal_id(meal_id: i32, pool: tauri::State<'_,Database>) -> Result<Vec<Food>, Error> {
-  let result = Meal::get_foods_by_id(meal_id, &pool.0).await?; 
+  let result = Food::get_by_meal_id(meal_id, &pool.0).await?; 
   Ok(result) 
 }
 
@@ -128,7 +134,19 @@ async fn add_new_food(selected_id: i32, amount: f64, meal_id: i32, pool: tauri::
   // query db for food normalized with the selected id
   let food_normalized = FoodNormalized::get_by_id(selected_id, &pool.0).await?; 
   // create food obj
-  let mut food = Food::from(food_normalized, meal_id, amount); 
+  let mut food = Food::from_food_normalized(food_normalized, meal_id, amount); 
+  // add to db 
+  food.create_entry(&pool.0).await?; 
+
+  Ok(())
+}
+
+#[tauri::command]
+async fn add_new_food_from_recipe(selected_id: i32, amount: f64, meal_id: i32, pool: tauri::State<'_,Database>) -> Result<(), Error> {
+  // query db for recipe 
+  let recipe = Recipe::get_by_id(selected_id, &pool.0).await?; 
+  // create food obj
+  let mut food = Food::from_recipe(recipe, meal_id, amount); 
   // add to db 
   food.create_entry(&pool.0).await?; 
 
@@ -291,4 +309,51 @@ async fn delete_ingredient_from_recipe(ingredient: Ingredient, pool: tauri::Stat
   recipe.update_entry(&pool.0).await?;
 
   Ok(recipe)
+}
+
+#[tauri::command]
+async fn get_user_goal(pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
+  let result = UserGoal::get_by_id(1, &pool.0).await; 
+  match result {
+    Ok(goal) => Ok(goal), 
+    Err(_) => {
+      let new_goal = UserGoal::new(0.0, 0.0, 0.0, 0.0, 2000.0); 
+      new_goal.create_entry(&pool.0).await?;
+      Ok(new_goal)
+    }
+  } 
+}
+
+#[tauri::command]
+async fn update_weight_goal(new_user_goal: UserGoal, pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
+  new_user_goal.update_weight(&pool.0).await?;
+  Ok(new_user_goal)
+}
+
+#[tauri::command]
+async fn update_calories_goal(new_user_goal: UserGoal, pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
+  new_user_goal.update_calories(&pool.0).await?;
+  Ok(new_user_goal)
+}
+
+#[tauri::command]
+async fn update_macros_goal(new_user_goal: UserGoal, pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
+  new_user_goal.update_macros(&pool.0).await?;
+  Ok(new_user_goal)
+}
+
+#[tauri::command]
+async fn write_foods_file(file_path: String, pool: tauri::State<'_, Database>) -> Result<(),  Error> {
+  let content = FoodNormalized::get_all(&pool.0).await?; 
+  file_ops::write_csv_file(file_path, content).await?;
+  Ok(())
+}
+
+#[tauri::command]
+async fn read_foods_file(file_path: String, pool: tauri::State<'_, Database>) -> Result<(),  Error> {
+  let content = file_ops::read_csv_file(file_path).await?;
+  for food in content {
+    food.create_entry(&pool.0).await?;
+  }
+  Ok(())
 }

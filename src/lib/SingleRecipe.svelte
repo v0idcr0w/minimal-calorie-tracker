@@ -1,9 +1,16 @@
 <script>
     import { invoke } from "@tauri-apps/api";
     import { onMount } from "svelte";
-    import { logId, foodsNormalized } from './store.js';
+    import { foodsNormalized } from './store.js';
     import { toTitleCase } from './titleCase.js';
-
+    import MaterialFloatingLabel from "./MaterialFloatingLabel.svelte";
+    import SvgOk from './SvgOk.svelte';
+    import SvgEdit from './SvgEdit.svelte'; 
+    import SvgCancel from './SvgCancel.svelte';
+    import SvgAdd from './SvgAdd.svelte'; 
+    import SvgTrash from './SvgTrash.svelte'; 
+    import SvgRemove from './SvgRemove.svelte'; 
+	import GradientButton from "./GradientButton.svelte";
     // props 
     export let recipe; 
     export let onDelete; 
@@ -59,9 +66,11 @@
     }
 
     async function addIngredientToRecipe(selectedFood, selectedFoodAmount) {
-        recipe = await invoke('add_ingredient_to_recipe', { foodNormalized: selectedFood, recipeId: recipe.id, amount: selectedFoodAmount }); 
+        recipe = await invoke('add_ingredient_to_recipe', { foodNormalized: selectedFood, recipeId: recipe.id, amount: Number(selectedFoodAmount) });
+        // refresh ui 
         dropdownActive = false; 
         refreshIngredients(); 
+        selectedFoodAmount = 0; 
     }
 
     async function deleteIngredientFromRecipe(ingredient) {
@@ -82,90 +91,172 @@
 
 </script>
 
+<!-- *************************** -->
+<!-- *************************** -->
+<!-- *************************** -->
 
-<h3>{toTitleCase(recipe.name)} <button on:click={onDelete}>Delete</button> </h3>  
-<button on:click={() => renameActive = !renameActive}>{renameActive ? "Cancel" : "Rename"}</button>
+<div class="block w-full tracking-tighter rounded-lg bg-white p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]">
+
+<h3 class="text-neutral-700 text-center text-xl m-4 font-bold" on:dblclick={() => renameActive = true} >
+    {#if !renameActive}
+        {toTitleCase(recipe.name)} 
+    {/if}
+
 
 <!-- Renaming a recipe -->
 {#if renameActive}
-    <input type="text" name="recipeName" placeholder="Recipe Name" bind:value={newRecipeName} />
-    <button on:click={renameRecipe} disabled={!newRecipeName}>Ok</button>
-{/if}
+    <input type="text" name="recipeName" placeholder="Recipe Name" bind:value={newRecipeName} class="w-1/2 text-center" />
+    <!-- Accept changes button -->
+    <GradientButton onClick={renameRecipe} disabled={!newRecipeName}>
+        <SvgOk />
+    </GradientButton>
 
-<p>
+    <!-- Reject changes button -->
+    <GradientButton onClick={() => renameActive = false }>
+        <SvgCancel />
+    </GradientButton>
+{/if}
+</h3>  
+
+<!-- Delete button -->
+<div class="flex justify-center">
+<button class="icon-button mb-2 mx-2" on:click={onDelete}>
+    <SvgTrash />
+</button>
+</div>
+
+<!-- RENDERING / EDITING SERVING SIZE -->
+<div class="flex items-center justify-center my-2">
+{#if !editServingSizeActive}
+    <p class="text-center text-sm mx-2">Serving size {recipe.serving_size} {recipe.unit}</p>
+{/if} 
+{#if !editServingSizeActive}
+    <GradientButton onClick={() => editServingSizeActive = !editServingSizeActive}>
+    <SvgEdit />  
+    </GradientButton>
+    {:else}
+    <GradientButton onClick={() => editServingSizeActive = !editServingSizeActive}>
+    <SvgCancel />
+    </GradientButton>
+{/if}
+</div>
+
+
+
 {#if editServingSizeActive}
-    <input type="number" min=0 placeholder=0 bind:value={newServingSize} /> <input type="text" placeholder="unit" bind:value={newUnit} />
-    <button on:click={updateServingSize(newServingSize, newUnit)} disabled={!(newServingSize > 0 && newUnit)}>Ok</button>
-{:else}
-    Serving size: {recipe.serving_size} {recipe.unit} 
+<div class="flex">
+    <div class="mr-2">
+    <MaterialFloatingLabel label="Serving size" bind:value={newServingSize} type="number" />
+    </div>
+    <MaterialFloatingLabel label="Measurement units" bind:value={newUnit} />
+</div>
+<div class="flex items-center justify-center">
+    <GradientButton onClick={() => updateServingSize(newServingSize, newUnit)} disabled={!(newServingSize > 0 && newUnit)}>
+        <SvgOk />
+    </GradientButton>
+</div>
 {/if}
 
-<!-- Editing Serving Size / Unit -->
-<button on:click={() => editServingSizeActive = !editServingSizeActive}>{ !editServingSizeActive ? "Edit" : "Cancel" }</button>
-</p>
+<!-- RENDERING / EDITING INGREDIENT LIST -->
 
 
-<!-- Render ingredient list of the recipe -->
-<table>
-{#each ingredients as ingredient, index (ingredient.id)}
-    <tr>
-    <!-- Delete Ingredient Button -->
-    <td>
-        <button on:click={() => deleteIngredientFromRecipe(ingredient)}>-</button>
-    </td>
-    
-    <td>{toTitleCase(ingredient.name)}</td>
+<ul class="w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg">
+    {#each ingredients as ingredient, index (ingredient.id)}
 
-    <td>
+    <li class="w-full px-4 py-2 border-b border-gray-200 rounded-t-lg flex items-center justify-between text-left">
+        <div class="-me-2 -mb-2">
+        <GradientButton onClick={() => deleteIngredientFromRecipe(ingredient)}>
+            <SvgRemove />
+        </GradientButton>
+        </div>
+
+        <div class="flex items-center">
+        
+        <span class="inline-block mx-1 align-top">
+            {toTitleCase(ingredient.name)}
+        </span>
+
         {#if editIngredientFlags[index]}
-        <input style="width: 50px;" type="number" min=0 placeholder=0 bind:value={newIngredientAmounts[index]} />
-        {:else}
-        {ingredient.amount}
+            <input class="w-8 text-center inline-block my-2 align-top" type="number" min=0 placeholder=0 bind:value={newIngredientAmounts[index]} />
+            {:else}
+            <span class="inline-block my-2 align-top">
+            {ingredient.amount}
+            </span>
         {/if}
-    </td>
-    <td>{ingredient.unit}</td>
 
-    <!-- Edit Ingredient Amount Button -->
-    <td>
-        <button on:click={() => editIngredientFlags[index] = !editIngredientFlags[index]}> {!editIngredientFlags[index] ? "Edit" : "Cancel"} </button>
-    </td>
-    
-    <!-- Edit confirmation button -->
-    <td>
-    {#if editIngredientFlags[index]}
-        <button on:click={updateIngredientAmount(ingredient, newIngredientAmounts[index])}>Ok</button>
-    {/if}
-    </td>
+            <span class="inline-block my-2 mx-1 align-top">
+            {ingredient.unit}
+            </span>
+        </div> 
 
-    
-    </tr>
-{/each}
-</table>
-
+        <div class="-mb-2 flex items-center">
+        {#if !editIngredientFlags[index]}
+            <GradientButton onClick={() => editIngredientFlags[index] = !editIngredientFlags[index]}>
+                <SvgEdit />
+            </GradientButton> 
+            {:else}
+            <GradientButton onClick={() => editIngredientFlags[index] = !editIngredientFlags[index]}>
+                <SvgCancel />
+            </GradientButton>
+        {/if}
+        
+        
+        <div class="-me-2">
+        {#if editIngredientFlags[index]}
+        <GradientButton onClick={() => updateIngredientAmount(ingredient, newIngredientAmounts[index])} disabled={!(newIngredientAmounts[index] >= 0)}>
+            <SvgOk />
+        </GradientButton>  
+        {/if}
+        </div>
+    </div>
+    </li>
+    {/each}
+</ul>
 
 <!-- Adding new ingredient block -->
-<button on:click={() => dropdownActive = !dropdownActive}>{!dropdownActive ? "+" : "Cancel"}</button>
+<div class="flex justify-center">
+<button class="icon-button my-2" on:click={() => dropdownActive = !dropdownActive}>
+    {#if !dropdownActive}
+    <SvgAdd />
+    {:else}
+    <SvgCancel />
+    {/if}
+</button>
+
+
+{#if dropdownActive && selectedFoodId}
+<button class="icon-button my-2 mx-2" on:click={() => addIngredientToRecipe(selectedFood, selectedFoodAmount) } disabled={!( selectedFoodAmount >= 0)}>
+    <SvgOk />
+</button>
+{/if}
+</div>
+
 {#if dropdownActive}
-    <select id="foodDropdown" on:change={handleSelect}>
+    <div class="flex justify-center">
+    <select class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-1/2 p-1" id="foodDropdown" on:change={handleSelect}>
 <!-- first option is blank and unselectable -->
     <option value="" disabled selected hidden></option>
     {#each $foodsNormalized as foodNormalized (foodNormalized.id)}
     <option value={foodNormalized.id}>{toTitleCase(foodNormalized.name)}</option>
     {/each}
     </select>
-
+    </div>
 <!-- Select the amount -->
     {#if selectedFoodId}
-    <input type="number" min=0 placeholder=0 bind:value={selectedFoodAmount} /> {selectedFood.unit}
+    <div class="flex flex-col items-center mt-4">
+        <div class="block text-sm">
+    <MaterialFloatingLabel label="Amount ({selectedFood.unit})" bind:value={selectedFoodAmount} type="number" />
+    </div>
+    </div>
     {/if}
-<!-- Confirm adding a new ingredient -->
-<button on:click={ addIngredientToRecipe(selectedFood, selectedFoodAmount) } disabled={!(selectedFoodAmount >= 0)}>Ok</button>
+
 {/if}
 
 
 
+
 <!-- Recipe totals information -->
-<table>
+<table class="mx-auto">
     <thead>
         <tr>
             <th colspan="3">Total</th>
@@ -193,3 +284,4 @@
     </tr>
 </table>
 
+</div>
