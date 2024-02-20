@@ -107,11 +107,13 @@ impl Ingredient {
 }
 
 impl UserGoal {
-    pub async fn create_entry(&self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
-        let _result = sqlx::query!("INSERT INTO user_goals (weight, protein, carbohydrate, fat, calories) VALUES (?, ?, ?, ?, ?)",
+    pub async fn create_entry(&mut self, pool: &SqlitePool) -> Result<(), sqlx::Error> {
+        let result = sqlx::query!("INSERT INTO user_goals (weight, protein, carbohydrate, fat, calories) VALUES (?, ?, ?, ?, ?)",
         self.weight, self.protein, self.carbohydrate, self.fat, self.calories)
         .execute(pool)
         .await?;
+
+        self.id = result.last_insert_rowid() as i32; 
 
         println!("[INFO] Inserted new entry"); 
         Ok(())
