@@ -9,8 +9,7 @@ DROP TABLE IF EXISTS ingredients;
 
 CREATE TABLE user_goals (
     id INTEGER PRIMARY KEY, 
-    weight TEXT, 
-    weight_rate REAL, 
+    weight REAL, 
     protein REAL, 
     carbohydrate REAL, 
     fat REAL, 

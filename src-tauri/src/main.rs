@@ -4,6 +4,9 @@
 // to run the app in development:
 // cargo tauri dev 
 
+// to build:
+// DATABASE_URL=sqlite//database.db cargo tauri build
+
 mod models; 
 mod database; 
 mod utils; 
@@ -18,6 +21,10 @@ struct Database(SqlitePool);
 
 #[tokio::main(flavor="current_thread")] 
 async fn main() -> Result<(), sqlx::Error> {
+  // initialization script is embedded in the binary 
+  let init_sql_script = include_str!("../init.sql"); 
+  // create database if it doesn't exist
+  db::create(init_sql_script).await?; 
 
   let pool = SqlitePool::connect(db::DB_URL).await?; 
 
@@ -317,7 +324,7 @@ async fn get_user_goal(pool: tauri::State<'_,Database>) -> Result<UserGoal, Erro
   match result {
     Ok(goal) => Ok(goal), 
     Err(_) => {
-      let new_goal = UserGoal::new(0.0, 0.0, 0.0, 0.0, 2000.0); 
+      let mut new_goal = UserGoal::new(0.0, 0.0, 0.0, 0.0, 2000.0); 
       new_goal.create_entry(&pool.0).await?;
       Ok(new_goal)
     }
