@@ -1,0 +1,87 @@
+{
+    "weight": "Peso",
+    "protein":"Proteínas",
+    "carbohydrates":"Carboidratos",
+    "fats":"Gorduras",
+    "calories": "Calorias",
+    "date": "Data", 
+    "servingSize": "Porção",
+    "unit": "Unidade de medida",
+    "food": "Alimento", 
+    "recipe": "Receita",
+    "language": "Língua",
+    "home": {
+        "title": "Página Inicial",
+        "nav": "Início",
+        "weightIn": "Peso atual",
+        "goals": "Objetivos",
+        "dailyCalories": "Calorias diárias",
+        "macronutrients": "Macronutrientes",
+        "newTarget": "Novo alvo",
+        "newWeight": "Novo peso",
+        "invalidWeight": "Peso inválido",
+        "estimateCals": "Calorias diárias estimadas"
+    },
+    "recipes": {
+        "title": "Receitas",
+        "nav": "Receitas",
+        "help": "Onde você pode adicionar, editar e visualizar receitas. Uma receita é simplesmente\numa lista de alimentos que pode ser usada para aliviar o fardo de ter que inserir novamente\nas mesmas informações se você tende a comer as mesmas coisas todos os dias.",
+        "newRecipe": "Nova Receita",
+        "recipeName": "Nome da receita"
+    }, 
+    "foods": {
+        "title": "Lista de Alimentos", 
+        "nav": "Alimentos",
+        "help": "Onde você pode adicionar, editar e visualizar alimentos.\nPode também carregar uma lista em CSV e\nsalvar a lista atual em CSV.", 
+        "save": "Salvar csv",
+        "load": "Carregar csv",
+        "deleteDialog": {
+            "title": "Confirmar",
+            "message": "Essa ação não pode ser revertida. Tem certeza?"
+        },
+        "newFood": "Novo alimento",
+        "foodName": "Nome do alimento",
+        "protein": "Quantidade proteínas",
+        "carbohydrate": "Quantidade carboidratos",
+        "fat": "Quantidade gorduras",
+        "noName": "Sem nome",
+        "noServingSize": "Sem porção",
+        "noUnit": "Sem unidade",
+        "invalidAmount": "Quantidade inválida"
+    }, 
+    "meals": {
+        "title": "Refeições",
+        "nav": "Refeições",
+        "help": "Onde você pode criar refeições a partir de sua lista de alimentos e receitas.\nCalorias e macronutrientes são computados automaticamente\ncom base nas informações fornecidas nas guias Alimentos e Receitas.",
+        "newMeal": "Nova Refeição",
+        "total": "Total em",
+        "singleTotal": "Total da refeição"
+    },
+    "logs": {
+        "nav": "Registros",
+        "title": "Registros Diários",
+        "help": "Onde você pode ver seu progresso em formato tabular."
+    }, 
+    "charts": {
+        "nav": "Gráficos",
+        "title": "Gráficos de Progresso",
+        "help": "Onde você pode ver seu progresso em formato gráfico.\nVocê pode optar por visualizar apenas uma das variáveis clicando\nnelas. É possível também controlar até onde deseja ver\nusando o controle deslizante.",
+        "slider": "Mostrar os últimos"
+    },
+    "day": {
+        "singular": "dia",
+        "plural": "dias"
+    },
+    "amount": "Quantidade",
+    "cancel": "Cancelar",
+    "total": "Total",
+    "error": {
+        "undefinedWeight": "Peso não pode estar vazio",
+        "invalidWeight": "Peso deve estar entre 0 e 999 kg",
+        "noFoodName": "Nome do alimento é obrigatório",
+        "invalidServingSize": "Porção deve ser maior que 0",
+        "noUnit": "Unidade de medida deve ser fornecida",
+        "negativeAmount": "Quantidade não pode ser negativa",
+        "negativeCalories": "Calorias não podem ser negativas"
+    }
+}

@@ -5,7 +5,7 @@
 // cargo tauri dev 
 
 // to build:
-// DATABASE_URL=sqlite//database.db cargo tauri build
+// DATABASE_URL=sqlite://database.db cargo tauri build
 
 mod models; 
 mod database; 

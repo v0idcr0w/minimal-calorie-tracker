@@ -1,6 +1,10 @@
 <script>
-    import Foods from '../../lib/Foods.svelte'
+    import Foods from '../../lib/Foods.svelte'; 
+    import Tooltip from '../../lib/Tooltip.svelte'; 
+    import { _ } from 'svelte-i18n'; 
 </script>
 
-<h1 class="text-neutral-600 text-3xl m-4 font-bold tracking-tighter">Foods List</h1>
+<h1 class="text-neutral-600 text-3xl m-4 font-bold tracking-loose">{$_('foods.title')}
+    <Tooltip text={$_('foods.help')} />
+</h1> 
 <Foods />
