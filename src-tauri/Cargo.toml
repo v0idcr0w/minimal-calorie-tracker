@@ -1,8 +1,8 @@
 [package]
 name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+version = "0.2.0"
+description = "Calorie and macronutrient tracker"
+authors = ["William Rios"]
 license = ""
 repository = ""
 default-run = "app"
@@ -19,12 +19,11 @@ serde_json = "1.0"
 thiserror = "1.0.24"
 chrono = {version = "0.4.31", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.5.4", features = ["dialog-all"] }
+tauri = { version = "1.5.4", features = [ "dialog-confirm", "dialog-save", "dialog-open"] }
 sqlx = {version = "0.7.3", features = ["sqlite", "runtime-tokio", "macros", "chrono", "migrate"] }
 sqlx-cli = {version = "0.7.3", features = ["sqlite"] }
 tokio = { version = "1.20.0", features = ["macros"] }
 csv = "1.3.0"
-once_cell = "1.19.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

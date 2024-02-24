@@ -1,0 +1,87 @@
+{
+    "weight": "Weight",
+    "protein":"Protein",
+    "carbohydrates":"Carbohydrates",
+    "fats":"Fats",
+    "calories": "Calories",
+    "date": "Date",
+    "servingSize": "Serving size",
+    "unit": "Measurement unit",
+    "food": "Food",
+    "recipe": "Recipe",
+    "language": "Language",
+    "home": {
+        "title": "Home",
+        "nav": "Home",
+        "weightIn": "Weight-in for today",
+        "goals": "Goals",
+        "dailyCalories": "Daily Calories",
+        "macronutrients": "Macronutrients",
+        "newTarget": "New target",
+        "newWeight": "New weight",
+        "invalidWeight": "Invalid weight",
+        "estimateCals": "Estimated total daily calories"
+    },
+    "recipes": {
+        "title": "Recipes",
+        "nav": "Recipes",
+        "help": "Where you can add, edit and view recipes. A recipe is simply\na list of foods which can be used to alleviate the burden of having to re-enter\nthe same information if you tend to eat the same things every day.",
+        "newRecipe": "New recipe",
+        "recipeName": "Recipe name"
+    },
+    "foods": {
+        "title": "Foods List",
+        "nav": "Foods",
+        "help": "Where you can add, edit and view foods.\nYou can also load a premade food list in the CSV format,\nand save your content as CSV.",
+        "save": "Save csv",
+        "load": "Load csv",
+        "deleteDialog": {
+            "title": "Confirm",
+            "message": "This action cannot be reverted. Are you sure?"
+        },
+        "newFood": "New Food",
+        "foodName": "Food name",
+        "protein": "Protein amount",
+        "carbohydrate": "Carbohydrate amount",
+        "fat": "Fat amount",
+        "noName": "No name",
+        "noServingSize": "No serving size",
+        "noUnit": "No unit",
+        "invalidAmount": "Invalid amount"
+    }, 
+    "meals": {
+        "title": "Meals", 
+        "nav": "Meals",
+        "help": "Where you can create meals from your foods and recipes list.\nCalories and macronutrients are automatically computed\nbased on the information you provide on Foods and Recipes tabs.",
+        "newMeal": "New Meal",
+        "total": "Total for",
+        "singleTotal": "Meal totals"
+    },
+    "logs": {
+        "title": "Daily Logs", 
+        "nav": "Logs",
+        "help": "Where you can see your progress in a tabular format."
+    }, 
+    "charts": {
+        "title": "Progress Charts",
+        "nav": "Charts",
+        "help": "Where you can view your progress in a chart. You can choose to\nview only one of the variables by clicking on them. You can also control how\nfar back you want to see by using the slider.",
+        "slider": "Show the last"
+    },
+    "day": {
+        "singular": "day",
+        "plural": "days"
+    },
+    "amount": "Amount",
+    "cancel": "Cancel",
+    "total": "Total",
+    "error": {
+        "undefinedWeight": "Weight cannot be blank",
+        "invalidWeight": "Weight must be between 0 and 999 kg",
+        "noFoodName": "Food name is required",
+        "invalidServingSize": "Serving size must be greater than 0",
+        "noUnit": "Unit of measurement must be provided",
+        "negativeAmount": "Amount cannot be negative",
+        "negativeCalories": "Calories cannot be negative"
+    }
+}
