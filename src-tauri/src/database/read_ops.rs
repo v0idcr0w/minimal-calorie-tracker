@@ -58,6 +58,15 @@ impl Meal {
         Ok(meals)
     }
 
+    pub async fn get_constant(log_id: i32, pool: &SqlitePool) -> Result<Vec<Self>, sqlx::Error> {
+        // this method retrieves all meals marked as constant with the exception of those that have the same log_id as the current log_id. 
+        let meals = query_as::<_, Self>("SELECT * FROM meals WHERE is_constant = 1 AND log_id != ?")
+        .bind(log_id)
+        .fetch_all(pool)
+        .await?;
+        Ok(meals)
+    }
+
     pub async fn get_by_id(pk: i32, pool: &SqlitePool) ->  Result<Self, sqlx::Error> {
         let meal = query_as::<_, Meal>("SELECT * FROM meals WHERE id = ?")
         .bind(pk)

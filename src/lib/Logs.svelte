@@ -1,8 +1,9 @@
 <script>
 	import { invoke } from '@tauri-apps/api';
 	import { onMount } from 'svelte';
-	import { logId, userGoal } from './store.js';
+	import { logId } from './store.js';
 	import { _ } from 'svelte-i18n'; 
+	import SingleLog from './SingleLog.svelte';
 
 	let logs = [];
 
@@ -16,9 +17,6 @@
 		if (!$logId) {
 			logId.set(await invoke('get_todays_log').id);
 		}
-		if (!$userGoal) {
-			userGoal.set(await invoke('get_user_goal'));
-		}
 	});
 </script>
 
@@ -31,49 +29,25 @@
 			<th>{$_('fats')} <br /> (g)</th>
 			<th>{$_('calories')} <br /> (kcal)</th>
 			<th>{$_('weight')} <br /> (kg)</th>
+			<th>{$_('logs.edit')} <br /> </th>
+			<th>{$_('logs.delete')}</th>
 		</tr>
 	</thead>
 
 	<tbody>
 		{#each logs as log (log.id)}
-			<tr class="border-b transition duration-300 ease-in-out tracking-tight hover:bg-neutral-200">
-				<td>{log.entry_date.slice(0, 10)}</td>
-				<td
-					>{log.total_protein.toFixed(0)}
-					<span class="smaller">({(log.total_protein - $userGoal.protein).toFixed(0)}) </span>
-				</td>
-				<td
-					>{log.total_carbohydrate.toFixed(0)}
-					<span class="smaller"
-						>({(log.total_carbohydrate - $userGoal.carbohydrate).toFixed(0)})</span
-					>
-				</td>
-				<td
-					>{log.total_fat.toFixed(0)}
-					<span class="smaller">({(log.total_fat - $userGoal.fat).toFixed(0)})</span>
-				</td>
-				<td
-					>{log.total_calories.toFixed(0)}
-					<span class="smaller">({(log.total_calories - $userGoal.calories).toFixed(0)})</span>
-				</td>
-				<td>{log.weight.toFixed(2)} </td>
-			</tr>
+			<SingleLog {log} {refreshLogs} />
 		{/each}
 	</tbody>
 </table>
 
 <style lang="postcss">
-	.smaller {
-		font-size: 0.8em;
-	}
-
 	table {
 		text-align: center;
 		table-layout: fixed;
 		width: 90%;
 	}
 
-	td,
 	th {
 		width: 16.66%;
 		padding-top: 0.5em;

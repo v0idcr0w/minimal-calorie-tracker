@@ -1,5 +1,5 @@
 use sqlx::SqlitePool; 
-use crate::models::{food::Food, ingredient::Ingredient, macros_total::MacrosTotal, meal::Meal}; 
+use crate::models::{food::Food, macros_total::MacrosTotal}; 
 
 
 pub async fn compute_meal_total(meal_id: i32, pool: &SqlitePool) -> MacrosTotal {
@@ -15,25 +15,6 @@ pub async fn compute_meal_total(meal_id: i32, pool: &SqlitePool) -> MacrosTotal 
         carbohydrate += food.carbohydrate; 
         fat += food.fat; 
         calories += food.calories;     
-    }
-
-    MacrosTotal::new(protein, carbohydrate, fat, calories)
-
-}
-
-pub async fn compute_recipe_total(recipe_id: i32, pool: &SqlitePool) -> MacrosTotal {
-    let ingredients: Vec<Ingredient> = Ingredient::get_by_recipe_id(recipe_id, &pool).await.unwrap(); 
-
-    let mut protein = 0.0; 
-    let mut carbohydrate = 0.0;
-    let mut fat = 0.0; 
-    let mut calories = 0.0; 
-
-    for ingredient in ingredients {
-        protein += ingredient.protein; 
-        carbohydrate += ingredient.carbohydrate; 
-        fat += ingredient.fat; 
-        calories += ingredient.calories;     
     }
 
     MacrosTotal::new(protein, carbohydrate, fat, calories)

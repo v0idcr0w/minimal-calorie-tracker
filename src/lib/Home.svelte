@@ -7,7 +7,6 @@
 	import MaterialFloatingLabel from './MaterialFloatingLabel.svelte';
 	import MaterialFloatingLabelError from './MaterialFloatingLabelError.svelte';
 	import GradientButton from './GradientButton.svelte';
-	import Tooltip from './Tooltip.svelte';
 	import SvgOk from './SvgOk.svelte';
 	import SvgCancel from './SvgCancel.svelte';
 	import SvgEdit from './SvgEdit.svelte';

@@ -10,6 +10,7 @@
     "food": "Food",
     "recipe": "Recipe",
     "language": "Language",
+    "constant": "Constant", 
     "home": {
         "title": "Home",
         "nav": "Home",
@@ -55,12 +56,23 @@
         "help": "Where you can create meals from your foods and recipes list.\nCalories and macronutrients are automatically computed\nbased on the information you provide on Foods and Recipes tabs.",
         "newMeal": "New Meal",
         "total": "Total for",
-        "singleTotal": "Meal totals"
+        "singleTotal": "Meal totals",
+        "constant": "Keep this meal the same for the next days"
     },
+    "meal_history": {
+        "title": "Meal History", 
+        "nav": "History", 
+        "help": "View past meals and nutrition information.\nNo editing is allowed, but you can toggle the constant button\nif you want to transfer them to the Meals tab.",
+        "constant": "Transfer to Meals tab",
+        "created": "Created on",
+        "nutrient": "Nutrient Information"
+    }, 
     "logs": {
         "title": "Daily Logs", 
         "nav": "Logs",
-        "help": "Where you can see your progress in a tabular format."
+        "help": "Where you can see your progress in a tabular format.",
+        "edit": "Edit",
+        "delete": "Delete"
     }, 
     "charts": {
         "title": "Progress Charts",

@@ -11,9 +11,10 @@
 		LineElement,
 		LinearScale,
 		PointElement,
-		CategoryScale
+		TimeScale
 	} from 'chart.js';
-	ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale);
+	import 'chartjs-adapter-date-fns'; 
+	ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, TimeScale);
 
 	let logs = [];
 	let labels = [];
@@ -40,12 +41,20 @@
 		logs.sort((a, b) => new Date(a.entry_date) - new Date(b.entry_date));
 		labels = logs.map((log) => formatDate(log.entry_date));
 		maxDays = labels.length;
-		dataCalories = logs.map((log) => log.total_calories.toFixed(0));
-		dataWeight = logs.map((log) => log.weight.toFixed(2));
+
+		// filter calories greater than 0 
+		dataCalories = logs.map((log) => ({x: formatDate(log.entry_date), y: log.total_calories.toFixed(0)}) )
+		.filter((obj) => obj.y > 0) 
+		.sort((a, b) => new Date(a.x) - new Date(b.x));     
+		
+		// filter weight data greater than 0 
+		dataWeight = logs.map((log) => ({x: formatDate(log.entry_date), y: log.weight.toFixed(2)}))
+		.filter((obj) => obj.y > 0)
+		.sort((a, b) => new Date(a.x) - new Date(b.x)); 
+
 	});
 
 	$: data = {
-		labels: labels.slice(-days),
 		datasets: [
 			{
 				label: $_('calories'),
@@ -96,31 +105,52 @@
 
 	const options = {
 		responsive: true,
+		maintainAspectRatio: true,
 		scales: {
+			x: {
+				type: 'time', 
+				time: {
+					parser: 'dd MMM', 
+					tooltipFormat: 'dd MMM yyyy'
+				}, 
+				title: {
+					display: true,
+					text: $_('date')
+				}
+			},
 			y1: {
 				type: 'linear',
-				position: 'left'
+				position: 'left',
+				title: {
+					display: true,
+					text: $_('calories')
+				}
 			},
 			y2: {
 				type: 'linear',
-				position: 'right'
+				position: 'right',
+				title: {
+					display: true, 
+					text: $_('weight')
+				}
 			}
 		}
 	};
 </script>
 
 <div class="mx-4">
-	<div class="text-sm tracking-tight leading-loose flex items-center justify-between">
-		{$_('charts.slider')} {days}
+	<div class="text-sm tracking-tight leading-loose block">
+		<span class="mr-4">
+		{$_('charts.slider')} {String(days).padStart(2, '0')}
 		{days === 1 ?  $_('day.singular') :  $_('day.plural') }
-
+	</span>
 		<input
 			id="default-range"
 			type="range"
 			bind:value={percentage}
 			min="1"
 			max="100"
-			class="w-4/5 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+			class="w-96 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
 			style="background: {gradient};"
 		/>
 	</div>

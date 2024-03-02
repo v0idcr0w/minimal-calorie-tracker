@@ -18,9 +18,6 @@ pub struct Ingredient {
 }
 
 impl Ingredient {
-    pub fn new(id: i32, recipe_id: i32, food_normalized_id: i32, name: String, amount: f64, unit: String, protein: f64, carbohydrate: f64, fat: f64, calories: f64) -> Self {
-        Self { id, recipe_id, food_normalized_id, name, amount, unit, protein, carbohydrate, fat, calories}
-    }
 
     pub fn from(food_normalized: FoodNormalized, recipe_id: i32, amount: f64) -> Self {
         // initializes a new instance of Ingredient by taking some amount and multiplying macros by the correct value 

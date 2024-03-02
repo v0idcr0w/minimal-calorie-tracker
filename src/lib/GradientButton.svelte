@@ -1,6 +1,6 @@
 <script>
 	export let onClick;
-	export let disabled;
+	export let disabled = false;
 </script>
 
 <button

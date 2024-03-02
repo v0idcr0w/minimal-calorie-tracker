@@ -5,27 +5,36 @@
 	import { toTitleCase } from './titleCase.js';
 	import { dailyTotals, today, logId } from './store.js';
 	import { _ } from 'svelte-i18n'; 
+	import Toggle from './Toggle.svelte'; 
 	import SingleMeal from './SingleMeal.svelte';
 	import MaterialFloatingLabel from './MaterialFloatingLabel.svelte';
 	import SvgOk from './SvgOk.svelte';
 	import SvgCancel from './SvgCancel.svelte';
 	import SvgAdd from './SvgAdd.svelte';
 	import SvgTrash from './SvgTrash.svelte';
+	import EditableField from './EditableField.svelte';
 
 	const todayFormatted = $today.toISOString().split('T')[0];
 
 	dailyTotals.set({ calories: 0, protein: 0, carbohydrate: 0, fat: 0 });
 
 	let meals = [];
+	let constMeals = []; 
 	let newMeal = {};
 	let mealIds = [];
 	let createMealActive = false;
 
 	async function refreshMeals() {
+		// retrieve all meals by the today's log id and sort them by the entry timestamp
 		meals = await invoke('get_meals_by_log_id', { logId: $logId });
-		meals.sort((a, b) => new Date(b.entry_timestamp) - new Date(a.entry_timestamp));
+		constMeals = await invoke('get_constant_meals', { logId: $logId });
+		meals = meals.concat(constMeals); 
+		meals.sort((a, b) => new Date(b.entry_timestamp) - new Date(a.entry_timestamp)); 
+
+		// id's 
 		mealIds = meals.map((obj) => obj.id);
-		newMeal = { id: 0, log_id: $logId, name: '', entry_timestamp: '' };
+
+		newMeal = { id: 0, log_id: $logId, name: '', entry_timestamp: '', is_constant: false};
 	}
 
 	async function updateTotals() {
@@ -39,7 +48,7 @@
 		await invoke('add_new_meal', { newMeal });
 		await refreshMeals();
 		// reset the newMeal object
-		newMeal = { id: 0, log_id: $logId, name: '', entry_timestamp: '' };
+		newMeal = { id: 0, log_id: $logId, name: '', entry_timestamp: '', is_constant: false };
 		// set the createMealActive to false to hide the input field
 		createMealActive = false;
 		// calling updateTotals is unnecessary because meals are initialized empty
@@ -56,13 +65,24 @@
 		await updateTotals();
 	}
 
+	async function handleToggle(meal) {
+		meal.is_constant = !meal.is_constant; 
+		await invoke('update_meal_status', { meal });
+	}
+	
+	async function handleRename(meal, newName) {
+		await invoke('update_meal_name', { meal, newName });
+	}
+
 	onMount(async () => {
 		if (!$logId) {
 			logId.set(await invoke('get_todays_log').id);
 		}
 		await refreshMeals();
-		await updateTotals();
+		await updateTotals(); 
 	});
+
+
 </script>
 
 <div class="mx-4">
@@ -117,12 +137,17 @@
 	</table>
 
 	<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-		{#each meals as meal, index (meal.id)}
+		{#each meals as meal (meal.id)}
 			<div
 				class="block w-full text-center tracking-tighter rounded-lg bg-white p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]"
-			>
+			>	
+				
+				<!-- controlling if the meal is constant or not-->
+				<Toggle isChecked={meal.is_constant === undefined ? false : meal.is_constant} handleToggle={() => handleToggle(meal) } />
+				
+				<!-- Rename -->
+				<EditableField text={toTitleCase(meal.name)} handleRename={handleRename} obj={meal} />
 				<!-- Delete meal -->
-				<h3 class="text-neutral-700 text-xl m-4 font-bold">{toTitleCase(meal.name)}</h3>
 				<button class="icon-button mb-4" on:click={deleteMeal(meal)}>
 					<SvgTrash />
 				</button>

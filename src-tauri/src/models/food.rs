@@ -17,9 +17,6 @@ pub struct Food {
 }
 
 impl Food {
-    pub fn new(id: i32, food_normalized_id: Option<i32>, recipe_id: Option<i32>, meal_id: i32, name: String, unit: String, amount: f64, protein: f64, carbohydrate: f64, fat: f64, calories: f64) -> Self {
-        Self { id, food_normalized_id, recipe_id, meal_id, name, unit, amount, protein, carbohydrate, fat, calories } 
-    }
 
     pub fn from_food_normalized(food_normalized: FoodNormalized, meal_id: i32, amount: f64) -> Self {
         // initializes a new instance of Food by taking some amount and multiplying macros by the correct value 

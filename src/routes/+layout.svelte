@@ -43,6 +43,11 @@
 				</a>
 			</li>
 			<li class="mr-2">
+				<a href="/meal_history" on:click={() => selectPage('/meal_history')} class="inline-block p-4 border-b-2 border-transparent rounded-t-lg  {$currentPage === '/meal_history' ? 'text-purple-600 border-purple-600 active' : 'hover:text-gray-600 hover:border-gray-300'}">
+					{$_('meal_history.nav')}
+				</a>
+			</li>
+			<li class="mr-2">
 				<a href="/logging" on:click={() => selectPage('/logging')}  class="inline-block p-4 border-b-2 border-transparent rounded-t-lg  {$currentPage === '/logging' ? 'text-purple-600 border-purple-600 active' : 'hover:text-gray-600 hover:border-gray-300'}">
 					{$_('logs.nav')}
 				</a>

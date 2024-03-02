@@ -5,6 +5,7 @@
 	import { toTitleCase } from './titleCase.js';
 	import { _ } from 'svelte-i18n'; 
 	import MaterialFloatingLabel from './MaterialFloatingLabel.svelte';
+	import EditableField from './EditableField.svelte';
 	import SvgOk from './SvgOk.svelte';
 	import SvgEdit from './SvgEdit.svelte';
 	import SvgCancel from './SvgCancel.svelte';
@@ -20,10 +21,6 @@
 	let ingredients = [];
 	let editIngredientFlags = [];
 	let newIngredientAmounts = [];
-
-	// rename variables
-	let renameActive = false;
-	let newRecipeName = '';
 
 	// dropdown selection variables
 	let dropdownActive = false;
@@ -46,12 +43,8 @@
 		newIngredientAmounts = ingredients.map((ingredient) => ingredient.amount);
 	}
 
-	async function renameRecipe() {
-		await invoke('update_recipe_name', { recipeId: recipe.id, newName: newRecipeName });
-		// update the name here in the display to avoid calling the backend again
-		recipe.name = newRecipeName;
-		renameActive = false;
-		newRecipeName = '';
+	async function renameRecipe(obj, text) {
+		await invoke('update_recipe_name', { recipeId: obj.id, newName: text });
 	}
 
 	async function updateServingSize(newServingSize, newUnit) {
@@ -101,35 +94,11 @@
 <div
 	class="block w-full tracking-tighter rounded-lg bg-white p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]"
 >
-	<h3
-		class="text-neutral-700 text-center text-xl m-4 font-bold"
-		on:dblclick={() => (renameActive = true)}
-	>
-		{#if !renameActive}
-			{toTitleCase(recipe.name)}
-		{/if}
-
-		<!-- Renaming a recipe -->
-		{#if renameActive}
-			<input
-				type="text"
-				name="recipeName"
-				placeholder={$_('recipes.recipeName')}
-				bind:value={newRecipeName}
-				class="w-1/2 text-center"
-			/>
-			<!-- Accept changes button -->
-			<GradientButton onClick={renameRecipe} disabled={!newRecipeName}>
-				<SvgOk />
-			</GradientButton>
-
-			<!-- Reject changes button -->
-			<GradientButton onClick={() => (renameActive = false)}>
-				<SvgCancel />
-			</GradientButton>
-		{/if}
-	</h3>
-
+	<!-- new rename -->
+	<div class="block w-full text-center tracking-tighter ">
+	<EditableField text={toTitleCase(recipe.name)} handleRename={renameRecipe} obj={recipe} />
+	</div>
+	
 	<!-- Delete button -->
 	<div class="flex justify-center">
 		<button class="icon-button mb-2 mx-2" on:click={onDelete}>

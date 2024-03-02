@@ -6,14 +6,13 @@
 	import SvgOk from './SvgOk.svelte';
 	import SvgEdit from './SvgEdit.svelte';
 	import SvgCancel from './SvgCancel.svelte';
-	import GradientButton from './GradientButton.svelte';
+	import EditableField from './EditableField.svelte';
 
 	// props
 	export let foodNormalized;
 	export let onDelete;
 
 	let updatedFood = {};
-	let editableName = false;
 	let editableFields = false;
 
 	function enableEditing(foodNormalized) {
@@ -28,42 +27,14 @@
 
 	async function updateFoodName(food, newName) {
 		await invoke('update_food_normalized_name', { food, newName });
-		editableName = false;
-		foodNormalized.name = newName;
 	}
 </script>
 
 <div
 	class="block w-full text-center tracking-tighter rounded-lg bg-white p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]"
 >
-	<h3 class="text-neutral-700 text-xl m-4 font-bold" on:dblclick={() => (editableName = true)}>
-		{#if !editableName}
-			{toTitleCase(foodNormalized.name)}
-		{/if}
-
-		{#if editableName}
-			<input
-				name="name"
-				type="text"
-				bind:value={updatedFood.name}
-				placeholder={foodNormalized.name}
-				class="w-1/2"
-			/>
-			<!-- Accept changes button -->
-			<GradientButton
-				onClick={() => {
-					updateFoodName(foodNormalized, updatedFood.name);
-				}}
-			>
-				<SvgOk />
-			</GradientButton>
-
-			<!-- Cancel changes button -->
-			<GradientButton onClick={() => (editableName = !editableName)}>
-				<SvgCancel />
-			</GradientButton>
-		{/if}
-	</h3>
+	<!-- new rename-->
+	<EditableField text={toTitleCase(foodNormalized.name)} handleRename={updateFoodName} obj={foodNormalized} />
 
 	<!-- Button that controls editing the rest of the fields -->
 	<p>
