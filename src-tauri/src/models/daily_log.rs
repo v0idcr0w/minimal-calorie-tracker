@@ -18,10 +18,11 @@ impl DailyLog {
     pub fn new(entry_date: NaiveDate) -> Self {
         Self { id: 0, weight: 0.0, total_protein: 0.0, total_carbohydrate: 0.0, total_fat: 0.0, total_calories: 0.0, entry_date }
     }
-    pub fn update_macros(&mut self, macros: MacrosTotal) {
+    pub fn update_macros(mut self, macros: MacrosTotal) -> Self {
         self.total_protein = macros.protein; 
         self.total_carbohydrate = macros.carbohydrate; 
         self.total_fat = macros.fat; 
         self.total_calories = macros.calories; 
+        self 
     }
 }

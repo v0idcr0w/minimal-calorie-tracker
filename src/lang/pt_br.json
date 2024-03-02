@@ -10,6 +10,7 @@
     "food": "Alimento", 
     "recipe": "Receita",
     "language": "Língua",
+    "constant": "Constante",
     "home": {
         "title": "Página Inicial",
         "nav": "Início",
@@ -55,12 +56,23 @@
         "help": "Onde você pode criar refeições a partir de sua lista de alimentos e receitas.\nCalorias e macronutrientes são computados automaticamente\ncom base nas informações fornecidas nas guias Alimentos e Receitas.",
         "newMeal": "Nova Refeição",
         "total": "Total em",
-        "singleTotal": "Total da refeição"
-    },
+        "singleTotal": "Total da refeição",
+        "constant": "Manter essa refeição fixa para os próximos dias"
+    }, 
+    "meal_history": {
+        "title": "Histórico de refeições", 
+        "nav": "Histórico", 
+        "help": "Visualize refeições anteriores e informação nutricional.\nNão é possível editar refeições nesta aba, mas é\npossível acionar o botão constante se quiser\ntransferir a refeição para a aba Refeições.",
+        "constant": "Transferir para a página de Refeições",
+        "created": "Criada em",
+        "nutrient": "Informação Nutricional"
+    }, 
     "logs": {
         "nav": "Registros",
         "title": "Registros Diários",
-        "help": "Onde você pode ver seu progresso em formato tabular."
+        "help": "Onde você pode ver seu progresso em formato tabular.",
+        "edit": "Editar",
+        "delete": "Deletar"
     }, 
     "charts": {
         "nav": "Gráficos",
