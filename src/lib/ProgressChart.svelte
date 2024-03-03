@@ -17,18 +17,17 @@
 	ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, TimeScale);
 
 	let logs = [];
-	let labels = [];
 	let dataCalories = [];
 	let dataWeight = [];
 
 	// slider variables
-	const minDays = 1;
-	let maxDays;
+	const minDays = 2;
+	let maxDays = minDays;
 
 	// default percentage
 	let percentage = 70;
 	$: gradient = `linear-gradient(90deg, #805AD5 ${percentage}%, #d3d3d3 ${percentage}%)`;
-	$: days = Math.round((percentage / 100) * maxDays) || minDays;
+	$: days = maxDays <= minDays ? minDays : Math.round((percentage / 100) * (maxDays-minDays)) + minDays;
 
 	function formatDate(dateString) {
 		const options = { day: '2-digit', month: 'short' };
@@ -40,8 +39,7 @@
 		logs = await invoke('get_all_logs');
 		logs.sort((a, b) => new Date(a.entry_date) - new Date(b.entry_date));
 		labels = logs.map((log) => formatDate(log.entry_date));
-		maxDays = labels.length;
-
+		
 		// filter calories greater than 0 
 		dataCalories = logs.map((log) => ({x: formatDate(log.entry_date), y: log.total_calories.toFixed(0)}) )
 		.filter((obj) => obj.y > 0) 
@@ -51,7 +49,8 @@
 		dataWeight = logs.map((log) => ({x: formatDate(log.entry_date), y: log.weight.toFixed(2)}))
 		.filter((obj) => obj.y > 0)
 		.sort((a, b) => new Date(a.x) - new Date(b.x)); 
-
+		
+		maxDays = Math.max(dataWeight.length, dataCalories.length);
 	});
 
 	$: data = {
@@ -103,7 +102,8 @@
 		]
 	};
 
-	const options = {
+	// this needs to be declared as a reactive statement in order to make it update the x-tick labels with changes in the days variable 
+	$: options = {
 		responsive: true,
 		maintainAspectRatio: true,
 		scales: {
@@ -116,6 +116,10 @@
 				title: {
 					display: true,
 					text: $_('date')
+				}, 
+				ticks: {
+					autoSkip: true, // auto skip labels
+					maxTicksLimit: days, // limit the number of labels
 				}
 			},
 			y1: {
