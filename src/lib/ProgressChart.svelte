@@ -38,7 +38,6 @@
 	onMount(async () => {
 		logs = await invoke('get_all_logs');
 		logs.sort((a, b) => new Date(a.entry_date) - new Date(b.entry_date));
-		labels = logs.map((log) => formatDate(log.entry_date));
 		
 		// filter calories greater than 0 
 		dataCalories = logs.map((log) => ({x: formatDate(log.entry_date), y: log.total_calories.toFixed(0)}) )
