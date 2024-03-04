@@ -3,7 +3,7 @@
 As the name states, this is a very minimialistic calorie and macronutrient tracker. Features that are found in more modern trackers such as bar code scanner (MyFitnessPal) and algorithmic predictions (MacroTracker) are missing here, and it's a desktop app. 
 
 ### Features 
-- The app racks weight, daily macronutrients and calories consumed displaying results with charts and tables
+- The app tracks weight, daily macronutrients and calories consumed displaying results with charts and tables
 - You can manually enter foods into a foods list, which becomes available to use in meals
 - In the recipes tab, you can create custom recipes based on the foods available in your foods list
 - In the meals tab, you create your meals for the day and enter the foods or recipes consumed and their amount; calculations are done automatically
