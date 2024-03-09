@@ -9,10 +9,11 @@ pub struct Meal {
     pub name: String, 
     pub entry_timestamp: NaiveDateTime, 
     pub is_constant: Option<bool>, 
+    pub is_disabled: Option<bool>
 }
 
 impl Meal {
-    pub fn new(id: i32, log_id: i32, name: String, entry_timestamp: NaiveDateTime, is_constant: Option<bool>) -> Self {
-        Self { id, log_id, name, entry_timestamp, is_constant }
+    pub fn new(id: i32, log_id: i32, name: String, entry_timestamp: NaiveDateTime, is_constant: Option<bool>, is_disabled: Option<bool>) -> Self {
+        Self { id, log_id, name, entry_timestamp, is_constant, is_disabled }
     }
 }

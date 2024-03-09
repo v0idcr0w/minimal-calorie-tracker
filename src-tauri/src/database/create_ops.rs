@@ -51,8 +51,8 @@ impl Meal {
     pub async fn create_entry(mut self, pool: &SqlitePool) -> Result<Self, sqlx::Error> {
         self.name = self.name.to_lowercase(); 
         // creates a meal entry without any foods associated
-        let result = sqlx::query!("INSERT INTO meals (name, entry_timestamp, log_id, is_constant) VALUES (?, ?, ?, ?)",
-        self.name, self.entry_timestamp, self.log_id, self.is_constant)
+        let result = sqlx::query!("INSERT INTO meals (name, entry_timestamp, log_id, is_constant, is_disabled) VALUES (?, ?, ?, ?, ?)",
+        self.name, self.entry_timestamp, self.log_id, self.is_constant, self.is_disabled)
         .execute(pool)
         .await?;
 

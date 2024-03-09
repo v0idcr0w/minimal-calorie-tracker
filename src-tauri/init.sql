@@ -42,7 +42,8 @@ CREATE TABLE meals (
     name TEXT NOT NULL, -- the meal name 
     log_id INTEGER NOT NULL, 
     entry_timestamp TEXT DEFAULT CURRENT_TIMESTAMP, -- date in the ISO 8601 format "YYYY-MM-DD HH:MM:SS.SSS"
-    is_constant BOOLEAN, 
+    is_constant BOOLEAN DEFAULT 0, 
+    is_disabled BOOLEAN DEFAULT 0, 
     FOREIGN KEY (log_id) REFERENCES daily_logs(id) ON DELETE CASCADE
 ); 
 

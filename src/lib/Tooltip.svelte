@@ -1,5 +1,6 @@
 <script>
 	let isHovered = false; 
+	export let alignment = "left-full"; 
 	export let text; 
 
 	function onHover() {
@@ -14,7 +15,7 @@
 	<div class="relative flex items-center justify-center">
 		<slot></slot>
 
-		<div class="absolute bg-neutral-900 text-white p-2 rounded-lg shadow-lg text-xs z-50 left-full bottom-full transition-opacity opacity-0 ease-in-out duration-200 {isHovered ? 'opacity-90' : 'opacity-0'} w-auto whitespace-pre tracking-loose {isHovered ? '' : 'invisible'}">
+		<div class="absolute bg-neutral-900 text-white p-2 rounded-lg shadow-lg text-xs z-50 {alignment} bottom-full transition-opacity opacity-0 ease-in-out duration-200 {isHovered ? 'opacity-90' : 'opacity-0'} w-auto whitespace-pre tracking-loose {isHovered ? '' : 'invisible'}">
 			{text}
 		</div>
 	</div>
