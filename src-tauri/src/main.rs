@@ -71,7 +71,8 @@ async fn main() -> Result<(), sqlx::Error> {
       update_meal_status,
       update_meal_name,
       update_log_standalone,
-      delete_log])
+      delete_log,
+      update_meal_is_disabled])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 
@@ -372,5 +373,11 @@ async fn update_log_standalone(log: DailyLog, pool: tauri::State<'_, Database>) 
 #[tauri::command]
 async fn delete_log(log: DailyLog, pool: tauri::State<'_, Database>) -> Result<(), Error> {
   log.delete_entry(&pool.0).await?;
+  Ok(())
+}
+
+#[tauri::command]
+async fn update_meal_is_disabled(meal: Meal, pool: tauri::State<'_, Database>) -> Result<(), Error> {
+  meal.update_is_disabled(&pool.0).await?;
   Ok(())
 }

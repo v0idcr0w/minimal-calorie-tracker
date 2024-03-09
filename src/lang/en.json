@@ -11,6 +11,7 @@
     "recipe": "Recipe",
     "language": "Language",
     "constant": "Constant", 
+    "active": "Active",
     "home": {
         "title": "Home",
         "nav": "Home",
@@ -57,7 +58,8 @@
         "newMeal": "New Meal",
         "total": "Total for",
         "singleTotal": "Meal totals",
-        "constant": "Keep this meal the same for the next days"
+        "constant": "Keep this meal the same for the next days",
+        "active": "Include this meal's calories in the daily total"
     },
     "meal_history": {
         "title": "Meal History", 

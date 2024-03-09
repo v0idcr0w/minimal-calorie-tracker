@@ -11,6 +11,7 @@
     "recipe": "Receita",
     "language": "Língua",
     "constant": "Constante",
+    "active": "Ativo",
     "home": {
         "title": "Página Inicial",
         "nav": "Início",
@@ -57,7 +58,8 @@
         "newMeal": "Nova Refeição",
         "total": "Total em",
         "singleTotal": "Total da refeição",
-        "constant": "Manter essa refeição fixa para os próximos dias"
+        "constant": "Manter essa refeição fixa para os próximos dias",
+        "active": "Incluir calorias dessa refeição no total de hoje"
     }, 
     "meal_history": {
         "title": "Histórico de refeições", 

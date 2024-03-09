@@ -34,11 +34,12 @@
 		// id's 
 		mealIds = meals.map((obj) => obj.id);
 
-		newMeal = { id: 0, log_id: $logId, name: '', entry_timestamp: '', is_constant: false};
+		newMeal = { id: 0, log_id: $logId, name: '', entry_timestamp: '', is_constant: false, is_disabled: false};
 	}
 
 	async function updateTotals() {
-		dailyTotals.set(await invoke('compute_daily_macros', { mealIds }));
+		const activeMealIds = meals.filter((meal) => !meal.is_disabled).map((meal) => meal.id);
+		dailyTotals.set(await invoke('compute_daily_macros', { mealIds: activeMealIds }));
 		await invoke('update_log_totals', { logId: $logId, dailyTotals: $dailyTotals });
 	}
 
@@ -65,9 +66,14 @@
 		await updateTotals();
 	}
 
-	async function handleToggle(meal) {
+	async function handleToggleConstant(meal) {
 		meal.is_constant = !meal.is_constant; 
 		await invoke('update_meal_status', { meal });
+	}
+	async function handleToggleDisabled(meal) {
+		meal.is_disabled = !meal.is_disabled; 
+		await invoke('update_meal_is_disabled', { meal });
+		await updateTotals(); 
 	}
 	
 	async function handleRename(meal, newName) {
@@ -141,9 +147,13 @@
 			<div
 				class="block w-full text-center tracking-tighter rounded-lg bg-white p-2 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]"
 			>	
-				
+				<!-- place toggles inline aligning one to the left and the other to the right -->
+				<div class="flex justify-between">
 				<!-- controlling if the meal is constant or not-->
-				<Toggle isChecked={meal.is_constant === undefined ? false : meal.is_constant} handleToggle={() => handleToggle(meal) } />
+				<Toggle isChecked={meal.is_constant === undefined ? false : meal.is_constant} handleToggle={() => handleToggleConstant(meal) } />
+				<!-- controlling if the meal is disabled or not -->
+				<Toggle isChecked={meal.is_disabled === undefined ? true : !meal.is_disabled} handleToggle={() => handleToggleDisabled(meal) } text="{$_('active')}" tooltipText="{$_('meals.active')}" tooltipAlignment="right-full" />
+				</div>
 				
 				<!-- Rename -->
 				<EditableField text={toTitleCase(meal.name)} handleRename={handleRename} obj={meal} />

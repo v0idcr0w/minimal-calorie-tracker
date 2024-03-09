@@ -76,7 +76,14 @@ impl Meal {
 
         println!("[INFO] Updated entry with id = {}", self.id); 
         Ok(self)
-    
+    }
+    pub async fn update_is_disabled(self, pool: &SqlitePool) -> Result<Self, sqlx::Error> {
+        sqlx::query!("UPDATE meals SET is_disabled = ? WHERE id = ?", self.is_disabled, self.id)
+        .execute(pool)
+        .await?;        
+
+        println!("[INFO] Updated entry with id = {}", self.id); 
+        Ok(self)
     }
 }
 
