@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO daily_logs (weight, total_protein, total_carbohydrate, total_fat, total_calories, entry_date) VALUES (?, ?, ?, ?, ?, ?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "55f4c75467d46be5e2a0b6b0a56ff5872d169bc9d016a6e9de7a44501eb6261f"
+}

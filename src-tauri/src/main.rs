@@ -8,16 +8,21 @@
 // DATABASE_URL=sqlite://database.db cargo tauri build
 
 mod models; 
-mod database; 
 mod utils; 
 mod tests; 
 
+use models::ingredient;
 use sqlx::SqlitePool; 
 use chrono::Local; 
+
 use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog, error::Error, macros_total::MacrosTotal, recipe::Recipe, ingredient::Ingredient, user_goal::UserGoal}; 
 use crate::utils::{db, calc, file_ops}; 
+use tauri::State; 
 
-struct Database(SqlitePool); 
+struct AppState {
+  pool: SqlitePool 
+}
+
 
 #[tokio::main(flavor="current_thread")] 
 async fn main() -> Result<(), sqlx::Error> {
@@ -30,7 +35,7 @@ async fn main() -> Result<(), sqlx::Error> {
   let pool = SqlitePool::connect(db::DB_URL).await?; 
 
   tauri::Builder::default()
-    .manage(Database(pool)) 
+    .manage(AppState { pool }) 
     .invoke_handler(tauri::generate_handler![
       get_foods_normalized, 
       add_new_food_normalized,
@@ -54,10 +59,9 @@ async fn main() -> Result<(), sqlx::Error> {
       update_log_totals,
       get_all_recipes,
       create_new_recipe,
-      update_recipe_name,
+      update_recipe,
       delete_recipe,
       add_ingredient_to_recipe,
-      update_recipe_serving_size,
       get_ingredients_by_recipe_id, 
       update_ingredient_amount,
       delete_ingredient_from_recipe, 
@@ -80,304 +84,303 @@ async fn main() -> Result<(), sqlx::Error> {
 }
 
 #[tauri::command]
-async fn get_foods_normalized(pool: tauri::State<'_,Database>) -> Result<Vec<FoodNormalized>, Error> {
-  let result = FoodNormalized::get_all(&pool.0).await?; 
+async fn get_foods_normalized(state: State<'_, AppState>) -> Result<Vec<FoodNormalized>, Error> {
+  let result = FoodNormalized::get_all(&state.pool).await?; 
   Ok(result) 
 }
 
 #[tauri::command]
-async fn add_new_food_normalized(new_food: FoodNormalized, pool: tauri::State<'_,Database>) -> Result<(), Error> {
-  new_food.create_entry(&pool.0).await?; 
+async fn add_new_food_normalized(new_food: FoodNormalized, state: State<'_, AppState>) -> Result<FoodNormalized, Error> {
+  let new_food = new_food.create(&state.pool).await?; 
+  Ok(new_food)
+}
+
+#[tauri::command]
+async fn delete_food_normalized(food: FoodNormalized, state: State<'_, AppState>) -> Result<(), Error> {
+  food.delete(&state.pool).await?;
   Ok(())
 }
 
 #[tauri::command]
-async fn delete_food_normalized(food: FoodNormalized, pool: tauri::State<'_,Database>) -> Result<(), Error> {
-  food.delete_entry(&pool.0).await?;
-  Ok(())
-}
-
-#[tauri::command]
-async fn update_food_normalized(food: FoodNormalized, pool: tauri::State<'_,Database>) -> Result<FoodNormalized, Error> {
-  let updated_food = food.update_entry(&pool.0).await?; 
+async fn update_food_normalized(food: FoodNormalized, state: State<'_, AppState>) -> Result<FoodNormalized, Error> {
+  let updated_food = food.update(&state.pool).await?; 
   Ok(updated_food)
 }
 
 #[tauri::command]
-async fn update_food_normalized_name(food: FoodNormalized, new_name: String, pool: tauri::State<'_,Database>) -> Result<(), Error> {
-  food.update_name(new_name, &pool.0).await?;  
-  Ok(())
+async fn update_food_normalized_name(id: i32, new_name: String, state: State<'_, AppState>) -> Result<FoodNormalized, Error> {
+  let food = FoodNormalized::get_by_id(id, &state.pool).await?.update_name(&new_name, &state.pool).await?;  
+  Ok(food)
 }
 
 #[tauri::command]
-async fn get_all_meals(pool: tauri::State<'_,Database>) -> Result<Vec<Meal>, Error> {
-  let result = Meal::get_all(&pool.0).await?; 
+async fn get_all_meals(state: State<'_, AppState>) -> Result<Vec<Meal>, Error> {
+  let result = Meal::get_all(&state.pool).await?; 
   Ok(result) 
 }
 
 #[tauri::command]
-async fn get_meals_by_log_id(log_id: i32, pool: tauri::State<'_,Database>) -> Result<Vec<Meal>, Error> {
-  let result = Meal::get_by_log_id(log_id, &pool.0).await?; 
+async fn get_meals_by_log_id(log_id: i32, state: State<'_, AppState>) -> Result<Vec<Meal>, Error> {
+  let result = Meal::get_by_log_id(log_id, &state.pool).await?; 
   Ok(result) 
 }
 
 #[tauri::command]
-async fn get_foods_by_meal_id(meal_id: i32, pool: tauri::State<'_,Database>) -> Result<Vec<Food>, Error> {
-  let result = Food::get_by_meal_id(meal_id, &pool.0).await?; 
+async fn get_foods_by_meal_id(meal_id: i32, state: State<'_, AppState>) -> Result<Vec<Food>, Error> {
+  let result = Food::get_by_meal_id(meal_id, &state.pool).await?; 
   Ok(result) 
 }
 
 
 #[tauri::command]
-async fn add_new_meal(new_meal: Meal, pool: tauri::State<'_,Database>) -> Result<(), Error> {
-  new_meal.create_entry(&pool.0).await?; 
+async fn add_new_meal(new_meal: Meal, state: State<'_, AppState>) -> Result<Meal, Error> {
+  let new_meal = new_meal.create(&state.pool).await?; 
+  Ok(new_meal)
+}
+
+#[tauri::command]
+async fn delete_meal(meal: Meal, state: State<'_, AppState>) -> Result<(), Error> {
+  meal.delete(&state.pool).await?; 
   Ok(())
 }
 
 #[tauri::command]
-async fn delete_meal(meal: Meal, pool: tauri::State<'_,Database>) -> Result<(), Error> {
-  meal.delete_entry(&pool.0).await?; 
-  Ok(())
-}
-
-#[tauri::command]
-async fn add_new_food(selected_id: i32, amount: f64, meal_id: i32, pool: tauri::State<'_,Database>) -> Result<(), Error> {
+async fn add_new_food(selected_id: i32, amount: f64, meal_id: i32, state: State<'_, AppState>) -> Result<Food, Error> {
   // query db for food normalized with the selected id
-  let food_normalized = FoodNormalized::get_by_id(selected_id, &pool.0).await?; 
+  let food_normalized = FoodNormalized::get_by_id(selected_id, &state.pool).await?; 
   // create food obj and add to db
-  Food::from_food_normalized(food_normalized, meal_id, amount).create_entry(&pool.0).await?; 
+  let food = Food::from_food_normalized(food_normalized, meal_id, amount).create(&state.pool).await?; 
 
-  Ok(())
+  Ok(food)
 }
 
 #[tauri::command]
-async fn add_new_food_from_recipe(selected_id: i32, amount: f64, meal_id: i32, pool: tauri::State<'_,Database>) -> Result<(), Error> {
+async fn add_new_food_from_recipe(selected_id: i32, amount: f64, meal_id: i32, state: State<'_, AppState>) -> Result<Food, Error> {
   // query db for recipe 
-  let recipe = Recipe::get_by_id(selected_id, &pool.0).await?; 
+  let recipe = Recipe::get_by_id(selected_id, &state.pool).await?; 
   // create food obj and add to db 
-  Food::from_recipe(recipe, meal_id, amount).create_entry(&pool.0).await?; 
+  let food = Food::from_recipe(recipe, meal_id, amount).create(&state.pool).await?; 
 
-  Ok(())
+  Ok(food)
 }
 
 #[tauri::command]
-async fn delete_food(food: Food, pool: tauri::State<'_,Database>) -> Result<(), Error> {
+async fn delete_food(food: Food, state: State<'_, AppState>) -> Result<(), Error> {
   
-  food.delete_entry(&pool.0).await?; 
+  food.delete(&state.pool).await?; 
 
   Ok(())
 }
 
 #[tauri::command]
-async fn update_food(food: Food, new_amount: f64, pool: tauri::State<'_,Database>) -> Result<Food, Error> {
-  let updated_food = food.update(new_amount).update_entry(&pool.0).await?; 
+async fn update_food(food: Food, new_amount: f64, state: State<'_, AppState>) -> Result<Food, Error> {
+  let updated_food = food.update(new_amount, &state.pool).await?; 
   
   Ok(updated_food)
 }
 
 #[tauri::command]
-async fn compute_meal_macros(meal_id: i32, pool: tauri::State<'_,Database>) -> Result<MacrosTotal, Error> {
-  let macros_total = calc::compute_meal_total(meal_id, &pool.0).await; 
+async fn compute_meal_macros(meal_id: i32, state: State<'_, AppState>) -> Result<MacrosTotal, Error> {
+  let macros_total = calc::compute_meal_total(meal_id, &state.pool).await; 
 
   Ok(macros_total)
 }
 
 #[tauri::command]
-async fn compute_daily_macros(meal_ids: Vec<i32>, pool: tauri::State<'_,Database>) -> Result<MacrosTotal, Error> {
-  let macros_total = calc::compute_daily_totals(&meal_ids, &pool.0).await; 
+async fn compute_daily_macros(meal_ids: Vec<i32>, state: State<'_, AppState>) -> Result<MacrosTotal, Error> {
+  let macros_total = calc::compute_daily_totals(&meal_ids, &state.pool).await; 
   Ok(macros_total)
 }
 
 #[tauri::command]
-async fn get_all_logs(pool: tauri::State<'_,Database>) -> Result<Vec<DailyLog>, Error> {
-  let result = DailyLog::get_all(&pool.0).await?; 
+async fn get_all_logs(state: State<'_, AppState>) -> Result<Vec<DailyLog>, Error> {
+  let result = DailyLog::get_all(&state.pool).await?; 
   Ok(result) 
 }
 
 #[tauri::command]
-async fn get_todays_log(pool: tauri::State<'_, Database>) -> Result<DailyLog, Error> {
+async fn get_todays_log(state: State<'_, AppState>) -> Result<DailyLog, Error> {
   let today = Local::now().date_naive();  
-  let query = DailyLog::get_by_date(today, &pool.0).await;
+  let query = DailyLog::get_by_date(today, &state.pool).await;
   match query {
     Ok(log) => Ok(log), 
     Err(_) => {
-      let new_log = DailyLog::new(today).create_entry(&pool.0).await?;
+      let new_log = DailyLog::new(today).create(&state.pool).await?;
       Ok(new_log)
     }
   } 
 }
 
 #[tauri::command]
-async fn weight_in(log_id: i32, weight: f64, pool: tauri::State<'_,Database>) -> Result<(), Error> {
-  DailyLog::get_by_id(log_id, &pool.0).await?.update_weight(weight, &pool.0).await?;
+async fn weight_in(log_id: i32, weight: f64, state: State<'_, AppState>) -> Result<DailyLog, Error> {
+  let updated_log = DailyLog::get_by_id(log_id, &state.pool).await?.update_weight(weight, &state.pool).await?;
 
-  Ok(())
+  Ok(updated_log)
 }
 
 #[tauri::command]
-async fn update_log_totals(log_id: i32, daily_totals: MacrosTotal, pool: tauri::State<'_,Database>) -> Result<(), Error> {
-  DailyLog::get_by_id(log_id, &pool.0).await?.update_macros(daily_totals).update_entry(&pool.0).await?;
+async fn update_log_totals(log_id: i32, daily_totals: MacrosTotal, state: State<'_, AppState>) -> Result<DailyLog, Error> {
+  let updated_log = DailyLog::get_by_id(log_id, &state.pool).await?.update_macros(daily_totals).update(&state.pool).await?;
 
-  Ok(())
+  Ok(updated_log)
 }
 
 #[tauri::command]
-async fn create_new_recipe(name: String, serving_size: f64, unit: String, pool: tauri::State<'_,Database>) -> Result<(), Error> {
+async fn create_new_recipe(name: String, serving_size: f64, unit: String, state: State<'_, AppState>) -> Result<Recipe, Error> {
   // id, macros and calories not required to make a new empty recipe 
-  Recipe::new(0, name, serving_size, unit, 0.0, 0.0, 0.0, 0.0).create_entry(&pool.0).await?; 
-  Ok(())
+  let new_recipe = Recipe::new(0, name, serving_size, unit, 0.0, 0.0, 0.0, 0.0).create(&state.pool).await?; 
+  Ok(new_recipe)
 }
 
 #[tauri::command] 
-async fn get_all_recipes(pool: tauri::State<'_,Database>) -> Result<Vec<Recipe>, Error> {
-  let result = Recipe::get_all(&pool.0).await?; 
+async fn get_all_recipes(state: State<'_, AppState>) -> Result<Vec<Recipe>, Error> {
+  let result = Recipe::get_all(&state.pool).await?; 
   Ok(result) 
 }
 
 #[tauri::command]
-async fn update_recipe_name(recipe_id: i32, new_name: String, pool: tauri::State<'_,Database>) -> Result<(), Error> {
-  Recipe::get_by_id(recipe_id, &pool.0).await?.update_name(new_name, &pool.0).await?; 
-  Ok(())
-}
-
-#[tauri::command]
-async fn delete_recipe(recipe_id: i32, pool: tauri::State<'_,Database>) -> Result<(), Error> {
-  Recipe::get_by_id(recipe_id, &pool.0).await?.delete_entry(&pool.0).await?; 
-  Ok(())
-}
-
-#[tauri::command]
-async fn add_ingredient_to_recipe(food_normalized: FoodNormalized, recipe_id: i32, amount: f64, pool: tauri::State<'_,Database>) -> Result<Recipe, Error> {
-  // receives the recipe id, food normalized id and amount to create a new ingredient based on food_id, then adds its macros to the recipe. returns the updated recipe. 
-  let ingredient = Ingredient::from(food_normalized, recipe_id, amount).create_entry(&pool.0).await?;
-
-  // update the macros of the recipe
-  let macros_to_add = ingredient.into_macros_total();
-  let recipe = Recipe::get_by_id(recipe_id, &pool.0).await?.update_macros(macros_to_add).update_entry(&pool.0).await?;
-
-  Ok(recipe)
-}
-
-#[tauri::command] 
-async fn update_recipe_serving_size(recipe: Recipe, new_serving_size: f64, new_unit: String, pool: tauri::State<'_,Database>) -> Result<Recipe, Error> { 
-  let updated_recipe = recipe.update_serving_size(new_serving_size, new_unit).update_entry(&pool.0).await?;
+async fn update_recipe(recipe: Recipe, state: State<'_, AppState>) -> Result<Recipe, Error> {
+  let mut recipe_from_db = Recipe::get_by_id(recipe.id, &state.pool).await?.update_serving_size(recipe.serving_size, recipe.unit); 
+  // update name if required
+  recipe_from_db.name = recipe.name; 
+  let updated_recipe = recipe_from_db.update(&state.pool).await?;
 
   Ok(updated_recipe)
 }
 
 #[tauri::command]
-async fn get_ingredients_by_recipe_id(recipe_id: i32, pool: tauri::State<'_,Database>) -> Result<Vec<Ingredient>, Error> {
-  let result = Ingredient::get_by_recipe_id(recipe_id, &pool.0).await?; 
+async fn delete_recipe(recipe_id: i32, state: State<'_, AppState>) -> Result<(), Error> {
+  Recipe::get_by_id(recipe_id, &state.pool).await?.delete(&state.pool).await?; 
+  Ok(())
+}
+
+#[tauri::command]
+async fn add_ingredient_to_recipe(ingredient_list: Vec<FoodNormalized>, recipe_id: i32, state: State<'_, AppState>) -> Result<Vec<Ingredient>, Error> {
+  // receives a list of ingredients as normalized food items and recipe id, then creates new ingriedients with a default amount of 0.0. returns the list of ingredients as inserted in the database. 
+  let mut ingredients_from_db: Vec<Ingredient> = vec![];  
+  for ingredient in ingredient_list.into_iter() {
+    let ingredient_from_db = Ingredient::from(ingredient, recipe_id, 0.0).create(&state.pool).await?;
+    ingredients_from_db.push(ingredient_from_db);
+  }
+
+  Ok(ingredients_from_db)
+}
+
+#[tauri::command]
+async fn get_ingredients_by_recipe_id(recipe_id: i32, state: State<'_, AppState>) -> Result<Vec<Ingredient>, Error> {
+  let result = Ingredient::get_by_recipe_id(recipe_id, &state.pool).await?; 
   Ok(result) 
 }
 
 #[tauri::command]
-async fn update_ingredient_amount(mut ingredient: Ingredient, new_amount: f64, pool: tauri::State<'_,Database>) -> Result<Recipe, Error> {
+async fn update_ingredient_amount(mut ingredient: Ingredient, new_amount: f64, state: State<'_, AppState>) -> Result<Recipe, Error> {
   // update ingredient 
   let macros_before = ingredient.into_macros_total(); 
-  ingredient = ingredient.update(new_amount).update_entry(&pool.0).await?;
+  ingredient = ingredient.update(new_amount, &state.pool).await?;
 
   // calculate the macro difference 
   let delta_macros = ingredient.into_macros_total() - macros_before;
 
   // update recipe  
-  let recipe = Recipe::get_by_id(ingredient.recipe_id, &pool.0).await?.update_macros(delta_macros).update_entry(&pool.0).await?;
+  let recipe = Recipe::get_by_id(ingredient.recipe_id, &state.pool).await?.update_macros(delta_macros).update(&state.pool).await?;
 
   Ok(recipe)
 }
 
 #[tauri::command]
-async fn delete_ingredient_from_recipe(ingredient: Ingredient, pool: tauri::State<'_,Database>) -> Result<Recipe, Error> {
-  // delete ingredient 
-  ingredient.delete_entry(&pool.0).await?;
-
+async fn delete_ingredient_from_recipe(ingredient: Ingredient, state: State<'_, AppState>) -> Result<Recipe, Error> {
+  
+  let recipe_id = ingredient.recipe_id; 
   // calculate the macro difference 
   let delta_macros = ingredient.into_macros_total() * (-1.0);
-
+  // delete ingredient 
+  ingredient.delete(&state.pool).await?;
   // update recipe  
-  let recipe = Recipe::get_by_id(ingredient.recipe_id, &pool.0).await?.update_macros(delta_macros).update_entry(&pool.0).await?;
+  let recipe = Recipe::get_by_id(recipe_id, &state.pool).await?.update_macros(delta_macros).update(&state.pool).await?;
 
   Ok(recipe)
 }
 
 #[tauri::command]
-async fn get_user_goal(pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
-  let result = UserGoal::get_by_id(1, &pool.0).await; 
+async fn get_user_goal(state: State<'_, AppState>) -> Result<UserGoal, Error> {
+  let result = UserGoal::get_by_id(1, &state.pool).await; 
   match result {
     Ok(goal) => Ok(goal), 
     Err(_) => {
-      let new_goal = UserGoal::new(0.0, 0.0, 0.0, 0.0, 2000.0).create_entry(&pool.0).await?;
+      let new_goal = UserGoal::new(0.0, 0.0, 0.0, 0.0, 2000.0).create(&state.pool).await?;
       Ok(new_goal)
     }
   } 
 }
 
 #[tauri::command]
-async fn update_weight_goal(new_user_goal: UserGoal, pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
-  new_user_goal.update_weight(&pool.0).await?;
+async fn update_weight_goal(new_weight: f64, state: State<'_, AppState>) -> Result<UserGoal, Error> {
+  let new_user_goal = UserGoal::get_by_id(1, &state.pool).await?.update_numeric_field("weight", new_weight, &state.pool).await?;
   Ok(new_user_goal)
 }
 
 #[tauri::command]
-async fn update_calories_goal(new_user_goal: UserGoal, pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
-  new_user_goal.update_calories(&pool.0).await?;
+async fn update_calories_goal(new_calories: f64, state: State<'_, AppState>) -> Result<UserGoal, Error> {
+  let new_user_goal = UserGoal::get_by_id(1, &state.pool).await?.update_numeric_field("calories", new_calories, &state.pool).await?;
   Ok(new_user_goal)
 }
 
 #[tauri::command]
-async fn update_macros_goal(new_user_goal: UserGoal, pool: tauri::State<'_,Database>) -> Result<UserGoal, Error> {
-  new_user_goal.update_macros(&pool.0).await?;
+async fn update_macros_goal(new_user_goal: UserGoal, state: State<'_, AppState>) -> Result<UserGoal, Error> {
+  let new_user_goal = new_user_goal.update(&state.pool).await?;
   Ok(new_user_goal)
 }
 
 #[tauri::command]
-async fn write_foods_file(file_path: String, pool: tauri::State<'_, Database>) -> Result<(),  Error> {
-  let content = FoodNormalized::get_all(&pool.0).await?; 
+async fn write_foods_file(file_path: String, state: State<'_, AppState>) -> Result<(),  Error> {
+  let content = FoodNormalized::get_all(&state.pool).await?; 
   file_ops::write_csv_file(file_path, content).await?;
   Ok(())
 }
 
 #[tauri::command]
-async fn read_foods_file(file_path: String, pool: tauri::State<'_, Database>) -> Result<(),  Error> {
+async fn read_foods_file(file_path: String, state: State<'_, AppState>) -> Result<(),  Error> {
   let content = file_ops::read_csv_file(file_path).await?;
   for food in content {
-    food.create_entry(&pool.0).await?;
+    FoodNormalized::from(food).create(&state.pool).await?;
   }
   Ok(())
 }
 
 #[tauri::command]
-async fn get_constant_meals(log_id: i32, pool: tauri::State<'_, Database>) -> Result<Vec<Meal>, Error> {
-  let result = Meal::get_constant(log_id, &pool.0).await?; 
+async fn get_constant_meals(log_id: i32, state: State<'_, AppState>) -> Result<Vec<Meal>, Error> {
+  let result = Meal::get_all_constant(log_id, &state.pool).await?; 
   Ok(result)
 }
 
 #[tauri::command]
-async fn update_meal_status(meal: Meal, pool: tauri::State<'_, Database>) -> Result<(), Error> {
-  meal.update_status(&pool.0).await?;
-  Ok(())
+async fn update_meal_status(meal: Meal, state: State<'_, AppState>) -> Result<Meal, Error> {
+  // TODO: does not need to pass the entire meal object...only id + new value is sufficient
+  let updated_meal = meal.update_disabled_status(&state.pool).await?;
+  Ok(updated_meal)
 }
 
 #[tauri::command]
-async fn update_meal_name(meal: Meal, new_name: String, pool: tauri::State<'_, Database>) -> Result<(), Error> {
-  meal.update_name(new_name).update_entry(&pool.0).await?;
-  Ok(())
+async fn update_meal_is_disabled(meal: Meal, state: State<'_, AppState>) -> Result<Meal, Error> {
+  let updated_meal = meal.update_constant_status(&state.pool).await?;
+  Ok(updated_meal)
 }
 
 #[tauri::command]
-async fn update_log_standalone(log: DailyLog, pool: tauri::State<'_, Database>) -> Result<DailyLog, Error> {
-  let updated_log = log.update_entry(&pool.0).await?;
+async fn update_meal_name(meal: Meal, new_name: String, state: State<'_, AppState>) -> Result<Meal, Error> {
+  let updated_meal = meal.update_name(&new_name, &state.pool).await?;
+  Ok(updated_meal)
+}
+
+#[tauri::command]
+async fn update_log_standalone(log: DailyLog, state: State<'_, AppState>) -> Result<DailyLog, Error> {
+  let updated_log = log.update(&state.pool).await?;
   Ok(updated_log)
 }
 
 #[tauri::command]
-async fn delete_log(log: DailyLog, pool: tauri::State<'_, Database>) -> Result<(), Error> {
-  log.delete_entry(&pool.0).await?;
+async fn delete_log(log: DailyLog, state: State<'_, AppState>) -> Result<(), Error> {
+  log.delete(&state.pool).await?;
   Ok(())
 }
 
-#[tauri::command]
-async fn update_meal_is_disabled(meal: Meal, pool: tauri::State<'_, Database>) -> Result<(), Error> {
-  meal.update_is_disabled(&pool.0).await?;
-  Ok(())
-}

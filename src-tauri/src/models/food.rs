@@ -1,4 +1,4 @@
-use sqlx::FromRow; 
+use sqlx::{FromRow, SqlitePool}; 
 use serde::{Serialize, Deserialize}; 
 use super::{food_normalized::FoodNormalized, recipe::Recipe}; 
 #[derive(Debug, Serialize, Deserialize, PartialEq, FromRow)] 
@@ -17,7 +17,6 @@ pub struct Food {
 }
 
 impl Food {
-
     pub fn from_food_normalized(food_normalized: FoodNormalized, meal_id: i32, amount: f64) -> Self {
         // initializes a new instance of Food by taking some amount and multiplying macros by the correct value 
         let multiplier = amount / food_normalized.serving_size; 
@@ -50,5 +49,58 @@ impl Food {
             fat: recipe.fat * multiplier, 
             calories: recipe.calories * multiplier 
         } 
+    }
+    pub async fn create(self, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+        let food: Result<Self, _> = sqlx::query_as("INSERT INTO foods (food_normalized_id, recipe_id, meal_id, name, unit, amount, protein, carbohydrate, fat, calories) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *")
+        .bind(self.food_normalized_id)
+        .bind(self.recipe_id)
+        .bind(self.meal_id)
+        .bind(self.name)
+        .bind(self.unit)
+        .bind(self.amount)
+        .bind(self.protein)
+        .bind(self.carbohydrate)
+        .bind(self.fat)
+        .bind(self.calories)
+        .fetch_one(db)
+        .await;
+        food
+    }
+    pub async fn update(self, new_amount: f64, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+        let updated_food = sqlx::query_as("UPDATE foods SET amount = ?, protein = ?, carbohydrate = ?, fat = ?, calories = ? WHERE id = ? RETURNING *")
+        .bind(new_amount)
+        .bind(self.protein * new_amount/self.amount)
+        .bind(self.carbohydrate * new_amount/self.amount)
+        .bind(self.fat * new_amount/self.amount)
+        .bind(self.calories * new_amount/self.amount)
+        .fetch_one(db)
+        .await;
+        updated_food 
+    }
+    pub async fn delete(self, db: &SqlitePool) -> Result<(), sqlx::Error> {
+        let _ = sqlx::query("DELETE FROM foods WHERE id = ?").bind(self.id).execute(db).await?;
+        Ok(())
+    }
+    pub async fn get_by_id(pk: i32, pool: &SqlitePool) -> Result<Self, sqlx::Error> {
+        let food = sqlx::query_as::<_, Self>("SELECT * FROM foods WHERE id = ?")
+        .bind(pk)
+        .fetch_one(pool)
+        .await?;
+        Ok(food)
+    }
+
+    pub async fn get_all(pool: &SqlitePool) -> Result<Vec<Self>, sqlx::Error> {
+        let food_list = sqlx::query_as::<_, Self>("SELECT * FROM foods")
+        .fetch_all(pool)
+        .await?;
+        Ok(food_list)
+    }
+
+    pub async fn get_by_meal_id(meal_id: i32, pool: &SqlitePool) -> Result<Vec<Self>, sqlx::Error> {
+        let foods = sqlx::query_as::<_, Self>("SELECT * FROM foods WHERE meal_id = ?")
+        .bind(meal_id)
+        .fetch_all(pool)
+        .await?;
+        Ok(foods)
     }
 }

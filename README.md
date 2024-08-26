@@ -15,11 +15,20 @@ As the name states, this is a very minimialistic calorie and macronutrient track
 - Database: SQLite (the database is created when you first execute the app)
 - Backend: Rust with <a href="https://tauri.app" title="tauri">Tauri</a> 
 - Frontend: SvelteKit
-- Design: Tailwindcss  
+- Styling: Tailwindcss  
 
 ### Credits
 Huge thanks to the following sources, because the design of this app would be terrible without them: 
-- <a href="https://fonts.google.com/icons" title="material icons">Google Material Icons</a> 
-- <a href="https://tw-elements.com/" title="tailwind elements">Tailwind Elements</a>
-- <a href="https://flowbite.com/" title="flowbite">Flowbite</a>
 - <a href="https://www.flaticon.com/free-icons/pie-chart" title="pie chart icons">Pie chart icons created by DinosoftLabs - Flaticon</a> 
+- Shadcn-Svelte (Component Library)
+- Lucide Svelte (Icons Library)
+
+
+### Updates TODO
+- [x] Foods Tab
+- [ ] Recipes Tab
+- [ ] Meals Tab
+- [ ] History Tab
+- [ ] Logs Tab
+- [ ] Charts Tab
+- [ ] Home Tab 

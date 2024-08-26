@@ -1,5 +1,5 @@
 <script>
-    import Foods from '../../lib/Foods.svelte'; 
+    import Foods from '../../lib/FoodsComponents/Foods.svelte'; 
     import Tooltip from '../../lib/Tooltip.svelte'; 
     import SvgInfo from "../../lib/SvgInfo.svelte";
     import { _ } from 'svelte-i18n'; 

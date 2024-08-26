@@ -1,5 +1,5 @@
 <script>
-    import ProgressChart from "../../lib/ProgressChart.svelte";
+    import ProgressChart from "../../lib/ChartComponents/ProgressChart.svelte";
     import Tooltip from '../../lib/Tooltip.svelte'; 
     import SvgInfo from "../../lib/SvgInfo.svelte";
     import { _ } from 'svelte-i18n'; 

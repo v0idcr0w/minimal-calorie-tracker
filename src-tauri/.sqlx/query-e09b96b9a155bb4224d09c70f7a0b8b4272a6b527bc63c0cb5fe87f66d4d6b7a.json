@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE user_goals SET weight = ? WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "e09b96b9a155bb4224d09c70f7a0b8b4272a6b527bc63c0cb5fe87f66d4d6b7a"
+}

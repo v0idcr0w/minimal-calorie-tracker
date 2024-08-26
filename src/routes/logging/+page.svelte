@@ -1,5 +1,5 @@
 <script>
-import Logs from "../../lib/Logs.svelte";
+import Logs from "../../lib/LogsComponents/Logs.svelte";
 import Tooltip from '../../lib/Tooltip.svelte'; 
 import SvgInfo from "../../lib/SvgInfo.svelte";
 import { _ } from 'svelte-i18n'; 

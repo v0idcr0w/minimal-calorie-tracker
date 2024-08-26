@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE daily_logs SET weight = ? WHERE id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "c86a74d1feaa7aaf08e07c9aaecf1604fbe2332376ea1fbe1b073fbc04605817"
+}
