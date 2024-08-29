@@ -56,13 +56,15 @@ impl Ingredient {
 
         ingredient
     }
-    pub async fn update(self, new_amount: f64, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn update(self, new_amount: f64, as_food_normalized: FoodNormalized, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+        let baseline_amount = as_food_normalized.serving_size;
+         
         let new_ingredient = sqlx::query_as("UPDATE ingredients SET amount = ?, protein = ?, carbohydrate = ?, fat = ?, calories = ? WHERE id = ? RETURNING *")
         .bind(new_amount)
-        .bind(self.protein * new_amount / self.amount)
-        .bind(self.carbohydrate * new_amount / self.amount)
-        .bind(self.fat * new_amount / self.amount)
-        .bind(self.calories * new_amount / self.amount)
+        .bind(as_food_normalized.normalized_protein * new_amount / baseline_amount)
+        .bind(as_food_normalized.normalized_carbohydrate * new_amount / baseline_amount)
+        .bind(as_food_normalized.normalized_fat * new_amount / baseline_amount)
+        .bind(as_food_normalized.normalized_calories * new_amount / baseline_amount)
         .bind(self.id)
         .fetch_one(db)
         .await;

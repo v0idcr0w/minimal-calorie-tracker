@@ -17,9 +17,9 @@
 	import * as Select from '$lib/components/ui/select';
 
 	// Svg icons
-	import { Trash2 } from 'lucide-svelte'; 
 	import { PencilLine } from 'lucide-svelte';
 	import { Plus } from 'lucide-svelte'; 
+	import { X } from 'lucide-svelte'; 
 
 	// props
 	export let recipe;
@@ -67,19 +67,33 @@
 		}
 	}
 
-	async function deleteIngredientFromRecipe(ingredient) {
-		recipe = await invoke('delete_ingredient_from_recipe', { ingredient });
-		// refresh the list of ingredients
-		refreshIngredients();
+	async function deleteIngredientFromRecipe(event) {
+		event.preventDefault(); 
+		const ingredient = event.detail; 
+		try {
+			recipe = await invoke('delete_ingredient_from_recipe', { ingredient });
+			refreshIngredients(); 
+		} catch (error) {
+			console.log(error);
+		}
 	}
 
-	async function updateIngredientAmount(ingredient, newAmount) {
+	async function updateIngredientAmount(event) {
 		// fetch new recipe with update macros
 		// update in the UI
-		recipe = await invoke('update_ingredient_amount', { ingredient, newAmount });
-		ingredient.amount = newAmount;
-		// reset all flags to false
-		editIngredientFlags = new Array(ingredients.length).fill(false);
+		event.preventDefault(); 
+		const { ingredient, newAmount } = event.detail;
+		try {
+			recipe = await invoke('update_ingredient_amount', { ingredient, newAmount });
+			ingredients = ingredients.map(i => {
+			if (i.id === ingredient.id) {
+				return { ...i, amount: newAmount };
+			}
+			return i;
+			});
+		} catch(error) {
+			console.log(error); 
+		}
 	}
 </script>
 
@@ -88,16 +102,24 @@
 <!-- *************************** -->
 
 <Card.Root>
-	<Card.Header>
+	<div class="flex w-full justify-between">
+		<Button class="rounded-none" variant="ghost" size="icon" on:click={() => editModalOpen = true}>
+			<PencilLine class="h-4 w-4"/>
+		</Button>
+		<Button class="ml-auto rounded-none" variant="ghost" size="icon" on:click={() => onDelete(recipe.id)}>
+			<X class="h-4 w-4"/>
+		</Button>
+	</div>
+	<Card.Header class="pt-0 pb-2">
 		<Card.Title class="capitalize">
-			{recipe.name}
+			{recipe.name} 
 		</Card.Title>
 		<Card.Description>
 			{recipe.serving_size} {recipe.unit}
 		</Card.Description>
 	</Card.Header>
 	<Card.Content>
-		<div class="flex flex-col gap-4 justify-center">
+		<div class="flex flex-col gap-2 justify-center">
 
 		<!-- ! ADD INGREDIENT BUTTONE -->
 		<!-- List with multiple selectable elements; once one gets clicked,  calls backend inserting the ingredient amount to 0 by default; the user can later edit the amount inside the table that gets rendered containing each ingredient and its amount.  -->
@@ -138,9 +160,11 @@
 		</Dialog.Root>
 		
 		<!-- ! DISPLAY THE INGREDIENTS -->
-		{#each ingredients as ingredient, index (ingredient.id)}
-			{ingredient.name}
-		{/each}
+		<div class="grid grid-cols-1 gap-2">
+			{#each ingredients as ingredient (ingredient.id)}
+			<SingleIngredient  {ingredient} on:delete={deleteIngredientFromRecipe} on:update={updateIngredientAmount} />
+			{/each}
+		</div>
 		</div>
 
 		<!-- ! TOTAL NUTRITION FACTS BELOW -->
@@ -170,10 +194,6 @@
 	</Card.Content>
 	<Card.Footer>
 		<div class="flex w-full justify-between">
-			<Button variant="secondary" on:click={() => editModalOpen = true}>
-				<PencilLine class="mr-2 h-4 w-4"/>
-				Edit
-			</Button>
 			<!-- ? EDITING MODAL -->
 			<Dialog.Root bind:open={editModalOpen}>
 				<Dialog.Trigger />
@@ -202,11 +222,6 @@
 					</Dialog.Footer>
 				</Dialog.Content>		
 			</Dialog.Root>
-
-			<Button variant="destructive" on:click={() => onDelete(recipe.id)}>
-				<Trash2 class="mr-2 h-4 w-4"/>
-				Delete
-			</Button>
 		</div>
 	</Card.Footer>
 </Card.Root>

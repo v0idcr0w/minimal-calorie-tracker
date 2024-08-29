@@ -2,15 +2,27 @@
     import { invoke } from '@tauri-apps/api'; 
     import { onMount } from 'svelte'; 
     import { _ } from 'svelte-i18n';
-    import { toTitleCase } from '../titleCase';
     import { formatDate } from '../formatDate';
-    import Toggle from '../Toggle.svelte'; 
-    import SvgTrash from '../SvgTrash.svelte'; 
 
+    // Components
+	import * as Card from '$lib/components/ui/card';
+    import * as Table from "$lib/components/ui/table";
+	import { Label } from '$lib/components/ui/label';
+	import { Button } from '$lib/components/ui/button';
+    import { Switch } from '$lib/components/ui/switch';
+    import * as AlertDialog from "$lib/components/ui/alert-dialog";
+    import Collapse from '$lib/Collapse.svelte';
+
+    // Icons
+    import { X } from 'lucide-svelte';
+
+    // props
     export let meal; 
     export let refreshMeals; 
 
+    // state
     let foods = [];
+    let alertDialogOpen = false; 
     let mealMacros = {protein: 0, carbohydrate: 0, fat: 0, calories: 0}; 
     const date = new Date(meal.entry_timestamp); 
 
@@ -19,14 +31,18 @@
         mealMacros = await invoke('compute_meal_macros', { mealId: meal.id });
     }
 
-    async function deleteMeal(meal) {
+    async function deleteMeal() {
         await invoke('delete_meal', { meal }); 
         await refreshMeals(); 
     }
 
-    async function handleToggle(meal) {
-        meal.is_constant = !meal.is_constant;
-		await invoke('update_meal_status', { meal });
+    async function handleToggle(checked) {
+        try {
+            await invoke('update_meal_is_constant', { mealId: meal.id, status: checked });
+            meal.is_constant = checked; 
+        } catch(error) {
+            console.error(error); 
+        }
     }
 
 
@@ -39,45 +55,74 @@
 </script>
 
 
-<div>
-    <Toggle isChecked={meal.is_constant} handleToggle={() => handleToggle(meal)} tooltipText={$_('meal_history.constant')} />
-    
-    <p class="text-neutral-700 text-xl mt-4 font-bold">{toTitleCase(meal.name)}</p>
-    <p class="text-neutral-700 m-2">{$_('meal_history.created')} {formatDate(date)}</p>
-
-    <button class="icon-button mb-4" on:click={deleteMeal(meal)}>
-        <SvgTrash />
-    </button>
-    
-    <ul class="w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg">
-        {#each foods as food (food.id)}
-        <li
-        class="w-full px-2 py-2 border-b border-gray-200 rounded-t-lg flex items-center justify-center">
-        {toTitleCase(food.name)} {food.amount} {food.unit}</li>
-        {/each}
-    </ul>
-
-    <p class="text-sm font-bold m-1">{$_('meal_history.nutrient')}</p>
-    <table class="mx-auto text-sm">
-        <tr>
-            <td>{$_('calories')}</td>
-            <td>{mealMacros.calories.toFixed(0)}</td>
-            <td>kcal</td>
-        </tr>
-        <tr>
-            <td>{$_('protein')}</td>
-            <td> {mealMacros.protein.toFixed(1)}</td>
-            <td>g</td>
-        </tr>
-        <tr>
-            <td>{$_('carbohydrates')}</td>
-            <td> {mealMacros.carbohydrate.toFixed(1)}</td>
-            <td>g</td>
-        </tr>
-        <tr>
-            <td>{$_('fats')}</td>
-            <td> {mealMacros.fat.toFixed(1)}</td>
-            <td>g</td>
-        </tr>
-    </table>
-</div>
+<Card.Root>
+    <div class="flex w-full justify-right">
+        <Button class="ml-auto" variant="ghost" size="icon" on:click={() => alertDialogOpen = true}>
+            <X class="w-4 h-4" /> 
+        </Button>
+        <AlertDialog.Root bind:open={alertDialogOpen}>
+            <AlertDialog.Trigger />
+            <AlertDialog.Content>
+                <AlertDialog.Header>
+                    <AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
+                    <AlertDialog.Description>
+                      This action cannot be undone. Please confirm your choice. 
+                    </AlertDialog.Description>
+                  </AlertDialog.Header>
+                  <AlertDialog.Footer>
+                    <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+                    <AlertDialog.Action on:click={() => deleteMeal()}>Confirm</AlertDialog.Action>
+                  </AlertDialog.Footer>
+            </AlertDialog.Content>
+        </AlertDialog.Root>
+    </div>
+    <Card.Header class="pt-0 pb-2">
+        <Card.Title class="capitalize">
+            {meal.name}
+        </Card.Title>
+        <Card.Description class="pb-2">
+            <div class="flex items-center justify-between">
+            {$_('meal_history.created')} {formatDate(date)} 
+                <div class="flex items-center space-x-2">
+                    <Switch includeInput={true} id="is-constant" checked={meal.is_constant} onCheckedChange={handleToggle}/>
+                    <Label for="is-constant">Constant</Label>
+                </div>
+            </div>
+        </Card.Description>
+        <div class="grid space-y-2">
+            <div class="grid grid-cols-1 gap-2 text-sm">
+                {#each foods as food (food.id)}
+                    <li>
+                        <span class='capitalize'>{food.name}</span> {food.amount} {food.unit}
+                    </li>
+                {/each}
+            </div>
+            {#if Object.keys(mealMacros).length !== 0}
+            <Collapse title={"Show meal calories and macros"}>
+                        <Table.Root>
+                            <Table.Row>
+                                <Table.Head>Calories</Table.Head>
+                                <Table.Cell>{mealMacros.calories.toFixed(0)}</Table.Cell>
+                                <Table.Cell>kcal</Table.Cell>
+                            </Table.Row>
+                            <Table.Row>
+                                <Table.Head>Protein</Table.Head>
+                                <Table.Cell>{mealMacros.protein.toFixed(1)}</Table.Cell>
+                                <Table.Cell>g</Table.Cell>
+                            </Table.Row>
+                            <Table.Row>
+                                <Table.Head>Carbohydrate</Table.Head>
+                                <Table.Cell>{mealMacros.carbohydrate.toFixed(1)}</Table.Cell>
+                                <Table.Cell>g</Table.Cell>
+                            </Table.Row>
+                            <Table.Row>
+                                <Table.Head>Total Fat</Table.Head>
+                                <Table.Cell>{mealMacros.fat.toFixed(1)}</Table.Cell>
+                                <Table.Cell>g</Table.Cell>
+                            </Table.Row>
+                        </Table.Root>
+                    </Collapse>
+            {/if}
+        </div>
+    </Card.Header>
+</Card.Root>

@@ -4,11 +4,11 @@
 	import { _ } from 'svelte-i18n';
 
 	// Svg icons for buttons
-	import { Trash2 } from 'lucide-svelte'; 
 	import { Check } from 'lucide-svelte'; 
 	import { PencilLine } from 'lucide-svelte';
 	import { PenOff } from 'lucide-svelte';
 	import { TextCursorInput } from 'lucide-svelte'; 
+	import { X } from 'lucide-svelte';
 
 	// Components
 	import * as Card from '$lib/components/ui/card';
@@ -52,6 +52,18 @@
 	}
 </script>
 <Card.Root>
+	<div class="flex w-full justify-between">
+		<Button size="icon" class="rounded-none" variant="ghost" on:click={() => editable = !editable}>
+			{#if !editable}
+			<PencilLine class="h-4 w-4"/>
+			{:else}
+			<PenOff class="h-4 w-4"/>
+			{/if}
+		</Button>
+		<Button size="icon" class="rounded-none" variant="ghost" on:click={() => onDelete(foodNormalized)}>
+			<X class="w-4 h-4"/>
+		</Button>
+	</div>
 	<Card.Header>
 		<Card.Title class="capitalize">
 			{foodNormalized.name}
@@ -113,28 +125,13 @@
 		</div>
 	</Card.Content>
 	<Card.Footer>
-		<div class="flex w-full justify-between">
-		<Button on:click={() => editable = !editable} variant="secondary">
-			{#if !editable}
-			<PencilLine class="mr-2 h-4 w-4"/>
-			Edit
-			{:else}
-			<PenOff class="mr-2 h-4 w-4"/>
-			Cancel
-			{/if}
-		</Button>
-
+		<div class="flex w-full justify-between min-h-10">
 		{#if editable}
 			<Button on:click={updateFood}>
 				<Check class="mr-2 h-4 w-4" />
 				Save
 			</Button>
 		{/if}
-
-		<Button variant="destructive" on:click={() => onDelete(foodNormalized)}>
-			<Trash2 class="mr-2 h-4 w-4"/>
-			Delete
-		</Button>
 		</div>
 	</Card.Footer>
 </Card.Root>

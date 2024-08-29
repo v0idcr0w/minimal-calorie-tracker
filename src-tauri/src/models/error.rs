@@ -7,6 +7,8 @@ pub enum Error {
     DatabaseError(#[from] sqlx::Error),
     #[error("IO Error: {0}")] 
     IOError(#[from] std::io::Error),
+    #[error("Other Error: {0}")]
+    OtherError(String)
 }
 
 impl Serialize for Error {

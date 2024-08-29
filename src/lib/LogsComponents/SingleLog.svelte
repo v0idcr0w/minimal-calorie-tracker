@@ -1,44 +1,62 @@
 <script>
-    export let log; 
-    export let refreshLogs; 
     import { invoke } from '@tauri-apps/api';
     import { confirm } from '@tauri-apps/api/dialog';
     import { logId } from '../store.js';
     import { _ } from 'svelte-i18n';
     import { formatDate } from '../formatDate.js';
-    import GradientButton from '../GradientButton.svelte'; 
-    import SvgEdit from '../SvgEdit.svelte';
-    import SvgOk from '../SvgOk.svelte';
-    import SvgRemove from '../SvgRemove.svelte';
-
-
-    let editable = false; 
-    let protein, carbohydrate, fat, calories, weight;
+    
+    // components
+    import * as Table from '$lib/components/ui/table';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+    import * as Dialog from '$lib/components/ui/dialog';
+    import { Button } from '$lib/components/ui/button';
+    import { Input } from '$lib/components/ui/input';
+    import { Label } from '$lib/components/ui/label';
+    
+    // svg 
+    import { PencilLine } from 'lucide-svelte'; 
+    import { X } from 'lucide-svelte';
+    import { EllipsisVertical } from 'lucide-svelte';
+    
+    // props     
+    export let log; 
+    export let refreshLogs; 
+    // state 
+    let editDialogOpen = false; 
+    let protein = log.total_protein;
+    let carbohydrate = log.total_carbohydrate;
+    let fat = log.total_fat; 
+    let calories = log.total_calories; 
+    let weight = log.weight;
     const logDate = new Date(log.entry_date); 
 
-    function autofocus(node) {
-        node.focus(); 
-    }
-
-    function sanitize(input) {
-        // checks if parseFloat was successful. 
-        if (isNaN(input)) {
-            return 0; 
-        }
-        return input; 
+    function estimateCalories() {
+        calories = (protein??0) * 4 + (carbohydrate??0) * 4 + (fat??0) * 9;
     }
 
     async function updateLog() {
-        const editedLog = {
-            ...log, 
-            total_protein: sanitize(parseFloat(protein.textContent)),
-            total_carbohydrate: sanitize(parseFloat(carbohydrate.textContent)),
-            total_fat: sanitize(parseFloat(fat.textContent)),
-            total_calories: sanitize(parseFloat(calories.textContent)),
-            weight: sanitize(parseFloat(weight.textContent))
-        }
+        try {
+            const editedLog = {
+                ...log, 
+                total_protein: Number(protein),
+                total_carbohydrate: Number(carbohydrate),
+                total_fat: Number(fat),
+                total_calories: Number(calories),
+                weight: Number(weight)
+            }
         log = await invoke('update_log_standalone', { log: editedLog });
-        editable = false; 
+        editDialogOpen = false; 
+        } catch(error) {
+            console.log(error); 
+        }
+    }
+
+    function resetEdit() {
+        protein = log.total_protein;
+        carbohydrate = log.total_carbohydrate;
+        fat = log.total_fat; 
+        calories = log.total_calories; 
+        weight = log.weight;
     }
 
     async function deleteLog() {
@@ -53,50 +71,81 @@
 
 </script>
 
-<tr class="border-b transition duration-300 ease-in-out tracking-tight hover:bg-neutral-200">
-    <td>{formatDate(logDate)}</td>
-    {#if !editable}
-        <td
-            >{log.total_protein.toFixed(0)}
-        </td>
-        <td
-            >{log.total_carbohydrate.toFixed(0)}
-        </td>
-        <td
-            >{log.total_fat.toFixed(0)}
-        </td>
-        <td
-            >{log.total_calories.toFixed(0)}
-        </td>
-        <td>{log.weight.toFixed(2)} </td>
-        <!-- edit button is disabled if the current log id is equal to whatever is in store  -->
-        <td> <GradientButton onClick={() => editable = true} disabled={log.id === $logId} > <SvgEdit />  </GradientButton> </td>
-    {:else}
-        <!-- autofocus on this to let the user know that it is editable -->
-        <td bind:this={protein} contenteditable="true" use:autofocus
-            >{log.total_protein.toFixed(0)}
-        </td>
-        <td bind:this={carbohydrate} contenteditable="true"
-            >{log.total_carbohydrate.toFixed(0)}
-        </td>
-        <td bind:this={fat} contenteditable="true"
-            >{log.total_fat.toFixed(0)}
-        </td>
-        <td bind:this={calories} contenteditable="true"
-            >{log.total_calories.toFixed(0)}
-        </td>
-        <td bind:this={weight} contenteditable="true">{log.weight.toFixed(2)} </td>
-        <td> <GradientButton onClick={updateLog} disabled={log.id === $logId} > <SvgOk />  </GradientButton> </td>
-    {/if}
-        <td><GradientButton onClick={deleteLog} disabled={log.id === $logId}> <SvgRemove /> </GradientButton> </td>
-</tr>
+<Table.Row>
+    <Table.Cell>{formatDate(logDate)}</Table.Cell>
+    <Table.Cell>
+        {log.total_protein.toFixed(0)}
+    </Table.Cell>
+    <Table.Cell>
+        {log.total_carbohydrate.toFixed(0)}
+    </Table.Cell>
+    <Table.Cell>
+        {log.total_fat.toFixed(0)}
+    </Table.Cell>
+    <Table.Cell>
+        {log.total_calories.toFixed(0)}
+    </Table.Cell>
+    <Table.Cell>
+        {log.weight.toFixed(2)}
+    </Table.Cell>
+    <Table.Cell>
+        <!-- ! DROPDOWN -->
+        <DropdownMenu.Root>
+		<DropdownMenu.Trigger disabled={log.id === $logId}>
+			<Button variant="ghost" class="rounded-full" size="icon" disabled={log.id === $logId}>
+				<EllipsisVertical class="h-4 w-4" />
+			</Button>
+		</DropdownMenu.Trigger>
+		<DropdownMenu.Content>
+			<DropdownMenu.Group>
+				<DropdownMenu.Label>Options</DropdownMenu.Label>
+				<DropdownMenu.Separator /> 
+				<DropdownMenu.Item on:click={() => editDialogOpen = true}>
+					<PencilLine class="w-4 h-4 mr-2"/>
+					Edit
+				</DropdownMenu.Item>
+				<DropdownMenu.Item on:click={() => deleteLog()}>
+					<X class="w-4 h-4 mr-2" />
+					Delete
+				</DropdownMenu.Item>
+			</DropdownMenu.Group>
+		</DropdownMenu.Content>
+	</DropdownMenu.Root>
 
+    <!-- ! EDIT MODAL -->
+    <Dialog.Root bind:open={editDialogOpen}>
+        <Dialog.Trigger/>
+        <Dialog.Content>
+            <Dialog.Header>
+                <Dialog.Title>Edit Log for {log.entry_date}</Dialog.Title>
+                <Dialog.Description>Calories are automatically estimated based on the amount of protein, carbohydrate and fat consumed. Feel free to overwrite the estimated value.</Dialog.Description>
+            </Dialog.Header>
+            <div class="grid grid-cols-6 gap-4 ">
+                <!-- Three cols -->
+                <Label class="text-right text-xs">Protein<br/>(g)</Label>
+                <Input bind:value={protein} on:change={() => estimateCalories()} />
 
-<style lang="postcss">
-	td {
-		width: 16.66%;
-		padding-top: 0.5em;
-		padding-bottom: 0.5em;
-	}
+                <Label class="text-right text-xs">Carbohydrate<br/>(g)</Label>
+                <Input bind:value={carbohydrate} on:change={() => estimateCalories()} />
 
-</style>
+                <Label class="text-right text-xs">Total Fat<br/>(g)</Label>
+                <Input bind:value={fat} on:change={() => estimateCalories()}/>
+                
+                <!-- Separate line -->
+                <Label class="text-right  text-xs">Calories<br/>(kcal)</Label>
+                <Input class="col-span-2" bind:value={calories}/>
+
+                <Label class="text-right text-xs">Weight</Label>
+                <Input class="col-span-2" bind:value={weight}/>
+            </div>
+        <Dialog.Footer>
+            <Dialog.Close>
+                <Button variant="secondary" on:click={() => resetEdit()}>Cancel</Button>
+            </Dialog.Close>
+            <Button on:click={() => updateLog()}>Confirm</Button>
+        </Dialog.Footer>
+        </Dialog.Content>
+    </Dialog.Root>
+
+    </Table.Cell>
+</Table.Row>

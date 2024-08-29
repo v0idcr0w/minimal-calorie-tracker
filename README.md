@@ -26,9 +26,10 @@ Huge thanks to the following sources, because the design of this app would be te
 
 ### Updates TODO
 - [x] Foods Tab
-- [ ] Recipes Tab
-- [ ] Meals Tab
-- [ ] History Tab
-- [ ] Logs Tab
-- [ ] Charts Tab
+- [x] Recipes Tab
+- [x] Meals Tab
+- [x] Meal History Tab
+- [x] Logs Tab
 - [ ] Home Tab 
+- [ ] Navigation Bar (Copy the Code from Shadcn-Svelte "Blocks")
+- [ ] Charts Tab

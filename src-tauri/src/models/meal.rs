@@ -36,17 +36,17 @@ impl Meal {
         .await; 
         updated_meal 
     }
-    pub async fn update_constant_status(self, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn update_constant_status(self, new_status: bool, db: &SqlitePool) -> Result<Self, sqlx::Error> {
         let updated_meal = sqlx::query_as("UPDATE meals SET is_constant = ? WHERE id = ? RETURNING *")
-        .bind(self.is_constant)
+        .bind(new_status)
         .bind(self.id)
         .fetch_one(db)
         .await; 
         updated_meal 
     }
-    pub async fn update_disabled_status(self, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn update_disabled_status(self, new_status: bool, db: &SqlitePool) -> Result<Self, sqlx::Error> {
         let updated_meal = sqlx::query_as("UPDATE meals SET is_disabled = ? WHERE id = ? RETURNING *")
-        .bind(self.is_disabled)
+        .bind(new_status)
         .bind(self.id)
         .fetch_one(db)
         .await; 

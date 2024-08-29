@@ -17,11 +17,11 @@ pub struct Food {
 }
 
 impl Food {
-    pub fn from_food_normalized(food_normalized: FoodNormalized, meal_id: i32, amount: f64) -> Self {
+    pub fn from_food_normalized(food_normalized: FoodNormalized, meal_id: i32, amount: f64, id: i32) -> Self {
         // initializes a new instance of Food by taking some amount and multiplying macros by the correct value 
         let multiplier = amount / food_normalized.serving_size; 
         Self { 
-            id: 0, // set id to zero 
+            id, // set id to zero 
             food_normalized_id: Some(food_normalized.id), 
             recipe_id: None,  // null recipe id 
             meal_id,
@@ -33,11 +33,11 @@ impl Food {
             calories: food_normalized.normalized_calories * multiplier } 
     }
 
-    pub fn from_recipe(recipe: Recipe, meal_id: i32, amount: f64) -> Self {
+    pub fn from_recipe(recipe: Recipe, meal_id: i32, amount: f64, id: i32) -> Self {
         // initializes a new instance of Food by taking some amount and multiplying macros by the correct value 
         let multiplier = amount / recipe.serving_size; 
         Self { 
-            id: 0, // set id to zero 
+            id, // set id to zero 
             food_normalized_id: None, 
             recipe_id: Some(recipe.id), 
             meal_id,
@@ -73,6 +73,7 @@ impl Food {
         .bind(self.carbohydrate * new_amount/self.amount)
         .bind(self.fat * new_amount/self.amount)
         .bind(self.calories * new_amount/self.amount)
+        .bind(self.id)
         .fetch_one(db)
         .await;
         updated_food 

@@ -5,6 +5,10 @@
 	import { _ } from 'svelte-i18n'; 
 	import SingleLog from './SingleLog.svelte';
 
+	//components
+	import * as Table from '$lib/components/ui/table';
+
+	// state 
 	let logs = [];
 
 	async function refreshLogs() {
@@ -20,7 +24,31 @@
 	});
 </script>
 
-<table class="table-auto mx-4">
+<div class="grid mx-4">
+
+<Table.Root>
+	<Table.Header>
+		<Table.Row>
+			<Table.Head >{$_('date')}</Table.Head>
+			<Table.Head >{$_('protein')}<br/>(g)</Table.Head>
+			<Table.Head>Carbohydrate<br/>(g)</Table.Head>
+			<Table.Head>Total Fat<br/>(g)</Table.Head>
+			<Table.Head>{$_('calories')}<br/>(kcal)</Table.Head>
+			<Table.Head >{$_('weight')}<br/>(kg)</Table.Head>
+			<Table.Head>Options</Table.Head>
+		</Table.Row>
+	</Table.Header>
+
+	<Table.Body>
+		{#each logs as log (log.id)}
+			<SingleLog {log} {refreshLogs} />
+		{/each}
+	</Table.Body>
+</Table.Root>
+</div>
+
+
+<!-- <table class="table-auto mx-4">
 	<thead class="border-b bg-purple-800 font-medium text-white tracking-tight">
 		<tr>
 			<th>{$_('date')} <br /> </th>
@@ -39,9 +67,9 @@
 			<SingleLog {log} {refreshLogs} />
 		{/each}
 	</tbody>
-</table>
+</table> -->
 
-<style lang="postcss">
+<!-- <style lang="postcss">
 	table {
 		text-align: center;
 		table-layout: fixed;
@@ -57,4 +85,4 @@
 	thead {
 		text-align: center;
 	}
-</style>
+</style> -->

@@ -1,9 +1,7 @@
 use sqlx::SqlitePool; 
 use crate::models::{food::Food, macros_total::MacrosTotal}; 
 
-
-pub async fn compute_meal_total(meal_id: i32, pool: &SqlitePool) -> MacrosTotal {
-    let foods: Vec<Food> = Food::get_by_meal_id(meal_id, &pool).await.unwrap(); 
+pub fn compute_meal_total(foods: Vec<Food>) -> MacrosTotal {
 
     let mut protein = 0.0; 
     let mut carbohydrate = 0.0;
@@ -28,7 +26,8 @@ pub async fn compute_daily_totals(meal_ids: &[i32], pool: &SqlitePool) -> Macros
     let mut calories = 0.0; 
 
     for &meal_id in meal_ids {
-        let meal_total = compute_meal_total(meal_id, pool).await;
+        let foods = Food::get_by_meal_id(meal_id, pool).await.unwrap();
+        let meal_total = compute_meal_total(foods);
         protein += meal_total.protein; 
         carbohydrate += meal_total.carbohydrate; 
         fat += meal_total.fat; 

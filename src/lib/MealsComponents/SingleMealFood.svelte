@@ -15,29 +15,30 @@
 	import { X } from 'lucide-svelte'; 
 	import { EllipsisVertical } from 'lucide-svelte'; 
 
-	// props
-	export let ingredient; 
+    // props
+    export let food; 
 
-	// state
+    // state
 	let editable = false; 
-	let newAmount = ingredient.amount; 
+	let newAmount = food.amount; 
 
-	const dispatch = createEventDispatcher();
+    const dispatch = createEventDispatcher();
 
-	function deleteIngredient() {
-		dispatch('delete', ingredient);
-	}
+    function deleteFood() {
+        dispatch('delete', food);
+    }
 
-	function updateIngredient() {
-		dispatch('update', { ingredient, newAmount: Number(newAmount) }); 
-		editable = false; 
-	}
+    function updateFood() {
+        dispatch('update', { food, newAmount: Number(newAmount) }); 
+        editable = false; 
+    }
 
-	function resetIngredient() {
-		newAmount = ingredient.amount; 
-		editable = false; 
-	}
-</script>
+    function resetFood() {
+        newAmount = food.amount; 
+        editable = false; 
+    }
+</script> 
+
 
 <div class="flex items-center">
 	<!-- Three dots dropdown with choices: Delete, Edit -->
@@ -56,7 +57,7 @@
 					<PencilLine class="w-4 h-4 mr-2"/>
 					Edit
 				</DropdownMenu.Item>
-				<DropdownMenu.Item on:click={deleteIngredient}>
+				<DropdownMenu.Item on:click={deleteFood}>
 					<X class="w-4 h-4 mr-2" />
 					Delete
 				</DropdownMenu.Item>
@@ -65,14 +66,14 @@
 	</DropdownMenu.Root>
 	</div>
 	<div class="grid grid-cols-7 items-center w-full">
-		<Label class="capitalize col-span-2 text-sm">{ingredient.name}</Label>
+		<Label class="capitalize col-span-2 text-sm">{food.name}</Label>
 		<Input type="number" bind:value={newAmount} readonly={!editable} class="col-span-2 text-xs {editable ? "bg-white" : "bg-gray-50"}" />
-		<Label class="col-span-1 text-center text-sm">{ingredient.unit}</Label>
+		<Label class="col-span-1 text-center text-sm">{food.unit}</Label>
 		{#if editable}
-		<Button size="icon" variant="ghost" class="rounded-full text-emerald-600" on:click={updateIngredient}>
+		<Button size="icon" variant="ghost" class="rounded-full text-emerald-600" on:click={updateFood} disabled={newAmount < 0}>
 			<Check class="h-4 w-4"/>
 		</Button>
-		<Button on:click={resetIngredient} variant="ghost" class="rounded-full text-gray-700" size="icon">
+		<Button on:click={resetFood} variant="ghost" class="rounded-full text-gray-700" size="icon">
 			<PenOff class="h-4 w-4" />
 		</Button>
 		{/if}
@@ -80,5 +81,3 @@
 	</div>
 
 </div>
-
-

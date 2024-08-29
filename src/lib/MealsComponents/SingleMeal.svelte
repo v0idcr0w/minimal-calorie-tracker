@@ -1,205 +1,308 @@
 <script>
-	// this part contains the logic related to rendering foods, editing and deleting a food from a given meal.
-	import { invoke } from '@tauri-apps/api';
-	import { onMount } from 'svelte';
-	import { toTitleCase } from '../titleCase';
-	import { foodsNormalized, recipes } from '../store.js';
-	import { _ } from 'svelte-i18n'; 
-	import Dropdown from '../Dropdown.svelte';
-	import GradientButton from '../GradientButton.svelte';
-	import SvgOk from '../SvgOk.svelte';
-	import SvgEdit from '../SvgEdit.svelte';
-	import SvgCancel from '../SvgCancel.svelte';
-	import SvgAdd from '../SvgAdd.svelte';
-	import SvgRemove from '../SvgRemove.svelte';
+    import {createEventDispatcher} from 'svelte';
+	import { invoke } from '@tauri-apps/api/tauri';
+    import { foodsNormalized, recipes } from '../store.js';
+    import { onMount } from 'svelte';
+    import SingleMealFood from './SingleMealFood.svelte'; 
+    // components 
+	import * as Dialog from "$lib/components/ui/dialog"; 
+	import * as Card from '$lib/components/ui/card';
+    import * as Select from '$lib/components/ui/select';
+    import * as RadioGroup from "$lib/components/ui/radio-group";
+    import * as Table from "$lib/components/ui/table";
+    import Collapse from '$lib/Collapse.svelte';
+    import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import { Button } from '$lib/components/ui/button';
+    import { Switch } from '$lib/components/ui/switch';
+    // Svg icons
+	import { PencilLine } from 'lucide-svelte';
+	import { Plus } from 'lucide-svelte'; 
+    import { X } from 'lucide-svelte'; 
 
-	// props
-	export let mealId;
-	export let onUpdate;
+    // props
+    export let meal;
+    
+    // state 
+    let isConstant = meal.is_constant; 
+    let isActive = !meal.is_disabled;
+    let newName = meal.name; 
+    let addFoodDialogOpen = false; 
+    let renameDialogOpen = false; 
+    let selectionOption = "food"; // default option
+    let selectedFood = null;
+    let selectedRecipe = null;  
+    let selectedAmount = null; 
+    let mealFoods = []; 
+    let mealMacros = {}; 
+ 
 
-	// arrays to store food information
-	let foods = [];
-	let editableArray = [];
-	let newAmountArray = [];
-	let computedMacros = {};
+    const dispatch = createEventDispatcher();
 
-	// button control
-	let dropdownActiveFood = false;
-	let dropdownActiveRecipe = false;
+    async function getMealFoods() {
+        try {
+            mealFoods = await invoke('get_foods_by_meal_id', { mealId: meal.id });
+        } catch(error) {
+            console.log(error); 
+        }
+    }
 
-	async function refreshFoods() {
-		foods = await invoke('get_foods_by_meal_id', { mealId });
-		computedMacros = await invoke('compute_meal_macros', { mealId });
-		editableArray = new Array(foods.length).fill(false);
-		newAmountArray = foods.map((food) => food.amount);
+    async function getMealMacros() {
+        try {
+            mealMacros = await invoke('compute_meal_macros', { mealId: meal.id });
+        } catch(error) {
+            console.log(error);
+        }
+    }
+
+    onMount(async () => {
+        await getMealFoods(); 
+        await getMealMacros(); 
+    });
+
+    async function updateConstantStatus(checked) {
+        try {
+            meal = await invoke('update_meal_is_constant', { mealId: meal.id, status: checked });
+            dispatch('update', meal);
+            dispatch('refresh'); 
+        } catch(error) {
+            console.log(error); 
+        }
+    }
+
+    async function updateDisabledStatus(checked) {
+        try {
+            meal = await invoke('update_meal_is_disabled', { mealId: meal.id, status: !checked}); 
+            dispatch('update', meal); 
+            dispatch('updateTotals'); 
+        } catch(error) {
+            console.log(error); 
+        }
+    }
+
+    async function handleRename() {
+        try {
+            meal = await invoke('update_meal_name', { mealId: meal.id, newName });
+            dispatch('update', meal); 
+            renameDialogOpen = false; 
+        } catch(error) {
+            console.log(error); 
+        }
 	}
 
-	onMount(async () => {
-		if ($foodsNormalized.length === 0) {
-			foodsNormalized.set(await invoke('get_foods_normalized'));
-		}
-		if ($recipes.length === 0) {
-			recipes.set(await invoke('get_all_recipes'));
-		}
-		await refreshFoods();
-	});
+    async function addNewFoodToMeal() {
+        try {
+            if (selectedFood && selectedAmount) {
+                const selectedId = selectedFood.value.id; 
+                const newFood = await invoke('add_new_food', { selectedId, amount: Number(selectedAmount), mealId: meal.id });
+                mealFoods = [...mealFoods, newFood];
+            } else if (selectedRecipe && selectedAmount) {
+                const selectedId = selectedRecipe.value.id;
+                const newRecipe = await invoke('add_new_food_from_recipe', { selectedId, amount: Number(selectedAmount), mealId: meal.id });
+                mealFoods = [...mealFoods, newRecipe]; 
+            } else {
+                return; 
+            }
+            // update daily macros and close the dialog
+            await getMealFoods()
+            await getMealMacros(); 
+            dispatch('updateTotals'); //Still not working properly
+            addFoodDialogOpen = false;
+            selectedFood = null;
+            selectedRecipe = null;  
+            selectedAmount = null; 
+        } catch(error) {
+            console.log(error); 
+        }
+    }
 
-	async function deleteFood(food) {
-		await invoke('delete_food', { food });
-		await refreshFoods();
-		await onUpdate();
-	}
+    async function deleteFoodFromMeal(event) {
+        const food = event.detail;
+        try {
+            await invoke('delete_food', { food });
+            mealFoods = mealFoods.filter((f) => f.id !== food.id);
+            await getMealMacros(); 
+            dispatch('updateTotals'); 
+        } catch(error) {
+            console.log(error); 
+        }
+    }
+    
+    async function editFoodInMeal(event) {
+        const { food, newAmount } = event.detail;
+        console.log(food, newAmount); 
+        try {
+            await invoke('update_food', { food, newAmount });
+            await getMealFoods(); 
+            await getMealMacros(); 
+            dispatch('updateTotals'); 
+        } catch(error) {
+            console.log(error); 
+        }
+    }
 
-	async function updateFood(food, newAmount) {
-		await invoke('update_food', { food, newAmount });
-		await refreshFoods();
-		await onUpdate();
-	}
+    function deleteMeal() {
+        dispatch('delete', meal); 
+    }
 
-	async function addNewFood(selectedId, amount) {
-		await invoke('add_new_food', { selectedId, amount, mealId });
-		// dispatch this event when a new food gets added
-		await refreshFoods();
-		await onUpdate();
-		dropdownActiveFood = false;
-	}
+    function resetSelected(value) {
+        // set the other value to null
+        if (value === "food") {
+            selectedRecipe = null; 
+        } else {
+            selectedFood = null;
+        }
+    }
 
-	async function addNewRecipe(selectedId, amount) {
-		await invoke('add_new_food_from_recipe', { selectedId, amount, mealId });
-		await refreshFoods();
-		await onUpdate();
-		dropdownActiveRecipe = false;
-	}
 </script>
 
-<div>
-	<ul class="w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg">
-		{#each foods as food, index (food.id)}
-			<li
-				class="w-full px-2 py-2 border-b border-gray-200 rounded-t-lg flex items-center justify-between text-left"
-			>
-				<div class="-me-2 -mb-2">
-					<GradientButton onClick={() => deleteFood(food)}>
-						<SvgRemove />
-					</GradientButton>
-				</div>
-
-				<div class="flex items-center">
-					<span class="inline-block mx-1 align-top">
-						{toTitleCase(food.name)}
-					</span>
-
-					{#if !editableArray[index]}
-						<span class="inline-block my-2 align-top">{food.amount}</span>
-					{:else}
-						<input
-							type="number"
-							min="0"
-							bind:value={newAmountArray[index]}
-							placeholder={food.amount}
-							class="w-8 text-center inline-block my-2 align-top"
-						/>
-					{/if}
-
-					<span class="inline-block my-2 mx-1 align-top">
-						{food.unit}
-					</span>
-				</div>
-
-				<div class="-mb-2 flex items-center">
-					{#if !editableArray[index]}
-						<GradientButton onClick={() => (editableArray[index] = !editableArray[index])}>
-							<SvgEdit />
-						</GradientButton>
-					{:else}
-						<GradientButton onClick={() => (editableArray[index] = !editableArray[index])}>
-							<SvgCancel />
-						</GradientButton>
-					{/if}
-
-					<div class="-me-2">
-						{#if editableArray[index]}
-							<GradientButton
-								onClick={() => updateFood(food, newAmountArray[index])}
-								disabled={!(newAmountArray[index] >= 0)}
-							>
-								<SvgOk />
-							</GradientButton>
-						{/if}
-					</div>
-				</div>
-			</li>
-		{/each}
-	</ul>
-
-	<div class="flex items-center justify-center my-4">
-		<!-- Dropdown button for foods list -->
-		<button
-			class="text-button w-32 p-1 mx-2"
-			on:click={() => {
-				dropdownActiveFood = !dropdownActiveFood;
-				dropdownActiveRecipe = false;
-			}}
-		>
-			{#if !dropdownActiveFood}
-				<SvgAdd /> {$_('food')}
-			{:else}
-				<SvgCancel /> {$_('cancel')}
-			{/if}
-		</button>
-
-		<!-- Dropdown button for recipe list -->
-		<button
-			class="text-button w-32 p-1 mx-2"
-			on:click={() => {
-				dropdownActiveRecipe = !dropdownActiveRecipe;
-				dropdownActiveFood = false;
-			}}
-		>
-			{#if !dropdownActiveRecipe}
-				<SvgAdd /> {$_('recipe')}
-			{:else}
-				<SvgCancel /> {$_('cancel')}
-			{/if}
-		</button>
+<Card.Root>
+    <div class="flex w-full justify-between">
+        <Button class="rounded-none" variant="ghost" size="icon" on:click={() => renameDialogOpen = true}>
+            <PencilLine class="h-4 w-4"/>
+        </Button>
+        <!-- ! DELETE BUTTON -->
+		<Button class="rounded-none" variant="ghost" size="icon" on:click={() => deleteMeal()}>
+			<X class="h-4 w-4"/>
+		</Button>
 	</div>
+    <Card.Header class="pt-0">
+        <!-- Active and Constant Buttones -->
+        <Card.Title class="capitalize pb-2">{meal.name}</Card.Title>
+        <Card.Description>
+            <!-- ! SWITCHES -->
+            <div class="flex justify-between">
+                <div class="flex items-center space-x-2">
+                    <Switch includeInput={true} id="is-constant" checked={isConstant} onCheckedChange={updateConstantStatus}/>
+                    <Label for="is-constant">Constant</Label>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <Switch id="is-active" checked={isActive} onCheckedChange={updateDisabledStatus}/>
+                    <Label for="is-active">Active</Label>
+                </div>
+            </div>
+        </Card.Description>
+    </Card.Header>
+    <Card.Content>
+        <div class="flex flex-col justify-center space-y-2">
+            <Button on:click={() => addFoodDialogOpen = true}>
+                <Plus class="mr-2 h-4 w-4"/>
+                Add Food or Recipe
+            </Button>
+            <!-- * DIALOG FOR ADDING NEW FOOD -->
+            <Dialog.Root bind:open={addFoodDialogOpen}>
+                <Dialog.Trigger/>
+                <Dialog.Content>
+                    <Dialog.Header>
+                        <Dialog.Title>Add Food or Recipe to <span class="capitalize">{meal.name}</span></Dialog.Title>
+                        <Dialog.Description>Select one food or recipe and specify the amount</Dialog.Description>
+                    </Dialog.Header>
+                    <div class="flex flex-col justify-center items-center">
+                        <RadioGroup.Root bind:value={selectionOption} onValueChange={resetSelected}>
+                            <div class="flex items-center space-x-2">
+                                <RadioGroup.Item value="food" id="foodOption"/>
+                                <Label for="foodOption">Food</Label>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <RadioGroup.Item value="recipe" id="recipeOption"/>
+                                <Label for="recipeOption">Recipe</Label>
+                            </div>
+                        </RadioGroup.Root>
+                        <div class="grid grid-cols-4 items-center gap-4 mt-4">
+                            <div class="col-span-2">
+                            {#if selectionOption === "food"}
+                                <Select.Root bind:selected={selectedFood}>
+                                    <Select.Trigger>
+                                        <Select.Value placeholder="Food"/>
+                                    </Select.Trigger>
+                                    <Select.Content>
+                                        {#each $foodsNormalized as food}
+                                        <Select.Item value={food} label={food.name} class="capitalize"/>
+                                        {/each}
+                                    </Select.Content>
+                                </Select.Root>
+                            {:else}
+                                <Select.Root bind:selected={selectedRecipe}>
+                                    <Select.Trigger>
+                                        <Select.Value placeholder="Recipe"/>
+                                    </Select.Trigger>
+                                    <Select.Content>
+                                        {#each $recipes as recipe}
+                                        <Select.Item value={recipe} label={recipe.name} class="capitalize"/>
+                                        {/each}
+                                    </Select.Content>
+                                </Select.Root>
+                            {/if}
+                        </div>
+                        <!-- Amount input box -->
+                        <Label for="amount" class="text-right">Amount<br/>{selectedFood ? `(${selectedFood.value.unit})` : (selectedRecipe ? `(${selectedRecipe.value.unit})` : "")}</Label>
+                            <Input id="amount" bind:value={selectedAmount} type="number" />
+                        </div>
+                    </div>
+                    <Dialog.Footer>
+                        <Button disabled={isNaN(selectedAmount) || !selectedAmount || selectedAmount < 0} on:click={addNewFoodToMeal}>Confirm</Button>
+                        <Dialog.Close>
+                            <Button on:click={() => {selectedFood = null; selectedRecipe = null; selectedAmount = null;}}>Cancel</Button>
+                        </Dialog.Close>
+                    </Dialog.Footer>
+                </Dialog.Content>
+            </Dialog.Root>
+            <!-- * DIALOG FOR RENAMING -->
+            <Dialog.Root bind:open={renameDialogOpen}>
+                <Dialog.Trigger/> 
+                <Dialog.Content>
+                    <Dialog.Header>
+                        <Dialog.Title>Rename Meal</Dialog.Title>
+                    </Dialog.Header>
+                    <div class="grid grid-cols-4 items-center gap-4 mt-4">
+                        <Label class="text-right col-span-1">New Name</Label>
+                        <Input bind:value={newName} type="text" class="col-span-3" />
+                    </div>
+                    <Dialog.Footer>
+                        <Button on:click={() => handleRename()}>Confirm</Button>
+                        <Dialog.Close>
+                            <!-- Reset the name -->
+                            <Button on:click={() => newName = meal.name}>Cancel</Button>
+                        </Dialog.Close>
+                    </Dialog.Footer>
+                </Dialog.Content>
+            </Dialog.Root>
+            <!-- ! LOOP -->
+            <div class="grid grid-cols-1 gap-2">
+            {#each mealFoods as food}
+                <SingleMealFood {food} on:delete={deleteFoodFromMeal} on:update={editFoodInMeal}/>
+            {/each}
+            </div>
+        </div>
+        <!-- ! TABLE WITH MACROS -->
+        {#if Object.keys(mealMacros).length !== 0}
+        <div class="pt-4">
+        <Collapse title={"Show meal calories and macros"}>
+            <Table.Root>
+                <Table.Row>
+                    <Table.Head>Calories</Table.Head>
+                    <Table.Cell>{mealMacros.calories.toFixed(0)}</Table.Cell>
+                    <Table.Cell>kcal</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Head>Protein</Table.Head>
+                    <Table.Cell>{mealMacros.protein.toFixed(1)}</Table.Cell>
+                    <Table.Cell>g</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Head>Carbohydrate</Table.Head>
+                    <Table.Cell>{mealMacros.carbohydrate.toFixed(1)}</Table.Cell>
+                    <Table.Cell>g</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Head>Total Fat</Table.Head>
+                    <Table.Cell>{mealMacros.fat.toFixed(1)}</Table.Cell>
+                    <Table.Cell>g</Table.Cell>
+                </Table.Row>
+            </Table.Root>
+        </Collapse>
+    </div>
 
-	{#if dropdownActiveFood}
-		<Dropdown onAdd={addNewFood} options={$foodsNormalized} />
-	{/if}
-
-	{#if dropdownActiveRecipe}
-		<Dropdown onAdd={addNewRecipe} options={$recipes} />
-	{/if}
-
-	<!-- Table containing the total amount of macros for the meal -->
-	{#if Object.keys(computedMacros).length !== 0}
-		<table class="mx-auto text-sm">
-			<thead>
-				<tr>
-					<th colspan="3">{$_('meals.singleTotal')}</th>
-				</tr>
-			</thead>
-			<tr>
-				<td>{$_('calories')}</td>
-				<td>{computedMacros.calories.toFixed(1)}</td>
-				<td>kcal</td>
-			</tr>
-			<tr>
-				<td>{$_('protein')}</td>
-				<td>{computedMacros.protein.toFixed(1)}</td>
-				<td>g</td>
-			</tr>
-			<tr>
-				<td>{$_('carbohydrates')}</td>
-				<td>{computedMacros.carbohydrate.toFixed(1)}</td>
-				<td>g</td>
-			</tr>
-			<tr>
-				<td>{$_('fats')}</td>
-				<td>{computedMacros.fat.toFixed(1)}</td>
-				<td>g</td>
-			</tr>
-		</table>
-	{/if}
-</div>
+        {/if}
+    </Card.Content>
+</Card.Root>
