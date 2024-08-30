@@ -86,7 +86,7 @@
         {log.total_calories.toFixed(0)}
     </Table.Cell>
     <Table.Cell>
-        {log.weight.toFixed(2)}
+        {log.weight.toFixed(2)} <span class="lowercase">{log.units}</span>
     </Table.Cell>
     <Table.Cell>
         <!-- ! DROPDOWN -->

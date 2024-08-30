@@ -15,10 +15,16 @@
 	} from 'chart.js';
 	import 'chartjs-adapter-date-fns'; 
 	ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, TimeScale);
+	import { CalendarDate } from '@internationalized/date';
+	import RangeDate from './RangeDate.svelte';
 
+	// State variables
 	let logs = [];
 	let dataCalories = [];
 	let dataWeight = [];
+	let firstDate; 
+	let lastDate; 
+	let value; 
 
 	// slider variables
 	const minDays = 2;
@@ -36,8 +42,23 @@
 	}
 
 	onMount(async () => {
+		// getting all logs info
 		logs = await invoke('get_all_logs');
 		logs.sort((a, b) => new Date(a.entry_date) - new Date(b.entry_date));
+		// setting the placeholder values for the range date component
+		firstDate = logs[0].entry_date;
+		if (logs.length > 1) {
+			lastDate = logs[logs.length - 1].entry_date;
+		} else {
+			lastDate = firstDate;	
+		}
+		const [startYear, startMonth, startDay] = firstDate.split('-');
+		const [endYear, endMonth, endDay] = lastDate.split('-');
+
+		value = {
+			start: new CalendarDate(Number(startYear), Number(startMonth), Number(startDay)),
+			end: new CalendarDate(Number(endYear), Number(endMonth), Number(endDay))
+		};
 		
 		// filter calories greater than 0 
 		dataCalories = logs.map((log) => ({x: formatDate(log.entry_date), y: log.total_calories.toFixed(0)}) )
@@ -142,6 +163,7 @@
 </script>
 
 <div class="mx-4">
+	<RangeDate bind:value/> 
 	<div class="text-sm tracking-tight leading-loose block">
 		<span class="mr-4">
 		{$_('charts.slider')} {String(days).padStart(2, '0')}

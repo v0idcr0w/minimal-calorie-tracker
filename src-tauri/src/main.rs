@@ -11,11 +11,10 @@ mod models;
 mod utils; 
 mod tests; 
 
-use models::ingredient;
 use sqlx::SqlitePool; 
 use chrono::Local; 
 
-use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::DailyLog, error::Error, macros_total::MacrosTotal, recipe::Recipe, ingredient::Ingredient, user_goal::UserGoal}; 
+use crate::models::{food::Food, food_normalized::FoodNormalized, meal::Meal, daily_log::{DailyLog, WeightUnits}, error::Error, macros_total::MacrosTotal, recipe::Recipe, ingredient::Ingredient, user_goal::UserGoal}; 
 use crate::utils::{db, calc, file_ops}; 
 use tauri::State; 
 
@@ -66,9 +65,7 @@ async fn main() -> Result<(), sqlx::Error> {
       update_ingredient_amount,
       delete_ingredient_from_recipe, 
       get_user_goal, 
-      update_weight_goal,
-      update_calories_goal, 
-      update_macros_goal,
+      update_user_goal,
       write_foods_file, 
       read_foods_file,
       get_constant_meals,
@@ -283,15 +280,15 @@ async fn get_todays_log(state: State<'_, AppState>) -> Result<DailyLog, Error> {
   match query {
     Ok(log) => Ok(log), 
     Err(_) => {
-      let new_log = DailyLog::new(today).create(&state.pool).await?;
+      let new_log = DailyLog::new(today, WeightUnits::Kg).create(&state.pool).await?;
       Ok(new_log)
     }
   } 
 }
 
 #[tauri::command]
-async fn weight_in(log_id: i32, weight: f64, state: State<'_, AppState>) -> Result<DailyLog, Error> {
-  let updated_log = DailyLog::get_by_id(log_id, &state.pool).await?.update_weight(weight, &state.pool).await?;
+async fn weight_in(log_id: i32, weight: f64, units: WeightUnits, state: State<'_, AppState>) -> Result<DailyLog, Error> {
+  let updated_log = DailyLog::get_by_id(log_id, &state.pool).await?.update_weight(weight, units, &state.pool).await?;
 
   Ok(updated_log)
 }
@@ -393,22 +390,11 @@ async fn get_user_goal(state: State<'_, AppState>) -> Result<UserGoal, Error> {
 }
 
 #[tauri::command]
-async fn update_weight_goal(new_weight: f64, state: State<'_, AppState>) -> Result<UserGoal, Error> {
-  let new_user_goal = UserGoal::get_by_id(1, &state.pool).await?.update_numeric_field("weight", new_weight, &state.pool).await?;
-  Ok(new_user_goal)
-}
-
-#[tauri::command]
-async fn update_calories_goal(new_calories: f64, state: State<'_, AppState>) -> Result<UserGoal, Error> {
-  let new_user_goal = UserGoal::get_by_id(1, &state.pool).await?.update_numeric_field("calories", new_calories, &state.pool).await?;
-  Ok(new_user_goal)
-}
-
-#[tauri::command]
-async fn update_macros_goal(new_user_goal: UserGoal, state: State<'_, AppState>) -> Result<UserGoal, Error> {
+async fn update_user_goal(new_user_goal: UserGoal, state: State<'_, AppState>) -> Result<UserGoal, Error> {
   let new_user_goal = new_user_goal.update(&state.pool).await?;
   Ok(new_user_goal)
 }
+
 
 #[tauri::command]
 async fn write_foods_file(file_path: String, state: State<'_, AppState>) -> Result<(),  Error> {

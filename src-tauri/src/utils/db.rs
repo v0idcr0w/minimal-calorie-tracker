@@ -16,24 +16,28 @@ pub async fn create(content: &str) -> Result <(), sqlx::Error> {
         Ok(true) => {
             println!("Database already exists"); 
             // check if column "is_constant" from "meals" exists 
-            check_column("is_constant").await?; 
+            let query = "ALTER TABLE meals ADD COLUMN is_constant BOOLEAN DEFAULT 0";
+            check_column("is_constant", query, "meals").await?; 
             // check if column "is_disabled" from "meals" exists 
-            check_column("is_disabled").await?; 
+            let query = "ALTER TABLE meals ADD COLUMN is_disabled BOOLEAN DEFAULT 0";
+            check_column("is_disabled", query, "meals").await?; 
+            // check if column "units" from "daily_logs" exists
+            let query = "ALTER TABLE daily_logs ADD COLUMN units INTERGER DEFAULT 0";
+            check_column("units", query, "daily_logs").await?; 
         }, 
         Err(e) => println!("Error: {}", e),
     }
     Ok(())
 }
 
-async fn check_column(column_name: &str) -> Result <(), sqlx::Error> {
+async fn check_column(column_name: &str, query: &str, table: &str) -> Result <(), sqlx::Error> {
     let mut conn = SqliteConnectOptions::new().filename("database.db").connect().await?; 
-    let query = &format!("SELECT COUNT(*) FROM pragma_table_info('meals') WHERE name='{}'", column_name);
-    let row: SqliteRow = sqlx::query(query).fetch_one(&mut conn).await?;  
+    let check = &format!("SELECT COUNT(*) FROM pragma_table_info('{table}') WHERE name='{column_name}'");
+    let row: SqliteRow = sqlx::query(check).fetch_one(&mut conn).await?;  
     let count: i32 = row.get(0); 
     if count == 0 {
         println!("Column '{}' does not exist", column_name); 
         // add column "column_name" to "meals"
-        let query = &format!("ALTER TABLE meals ADD COLUMN {} BOOLEAN DEFAULT 0", column_name); 
         sqlx::query(query).execute(&mut conn).await?; 
         println!("Creation successful"); 
     } else {

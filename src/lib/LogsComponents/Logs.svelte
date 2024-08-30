@@ -34,7 +34,7 @@
 			<Table.Head>Carbohydrate<br/>(g)</Table.Head>
 			<Table.Head>Total Fat<br/>(g)</Table.Head>
 			<Table.Head>{$_('calories')}<br/>(kcal)</Table.Head>
-			<Table.Head >{$_('weight')}<br/>(kg)</Table.Head>
+			<Table.Head >{$_('weight')}</Table.Head>
 			<Table.Head>Options</Table.Head>
 		</Table.Row>
 	</Table.Header>

@@ -4,23 +4,19 @@
 	import { logId, userGoal } from '$lib/store.js';
 	import { _ } from 'svelte-i18n'; 
 	import MacrosPie from './MacrosPie.svelte';
-	import MaterialFloatingLabel from '$lib/MaterialFloatingLabel.svelte';
-	import MaterialFloatingLabelError from '$lib/MaterialFloatingLabelError.svelte';
-	import GradientButton from '$lib/GradientButton.svelte';
-	import SvgOk from '$lib/SvgOk.svelte';
-	import SvgCancel from '$lib/SvgCancel.svelte';
-	import SvgEdit from '$lib/SvgEdit.svelte';
 
-	let weight = 0;
-	// button controls
-	let editWeight = false;
-	let editWeightGoal = false;
-	let editCaloriesGoal = false;
-	let editMacrosGoal = false;
+	// Components
+	import * as Card from '$lib/components/ui/card'; 
+	import * as Select from '$lib/components/ui/select'; 
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import { Button } from '$lib/components/ui/button';
 
-	let todaysLog = {};
+	// Svg 
+	import { PencilLine } from 'lucide-svelte';
+	import { PenOff } from 'lucide-svelte'; 
+	import { Check } from 'lucide-svelte'; 
 
-	let newUserGoal = {};
 	// this needs to be declared as reactive in order to make the chart reactive too
 	$: totalMacros = newUserGoal.protein + newUserGoal.carbohydrate + newUserGoal.fat;
 	$: calories = newUserGoal.protein * 4.0 + newUserGoal.carbohydrate * 4.0 + newUserGoal.fat * 9.0; 
@@ -30,9 +26,18 @@
 		(newUserGoal.fat / totalMacros) * 100
 	];
 
+	// NEW CODE
+
+	let newWeightEditable = false; 
+	let newWeight = null; 
+	let newUnits = null; 
+	let displayedUnits = ''; 
+	let goalsEditable = false; 
+	let todaysLog = {};
+	let newUserGoal = {};
+
 	async function getOrCreateTodaysLog() {
 		todaysLog = await invoke('get_todays_log');
-		weight = todaysLog.weight;
 		logId.set(todaysLog.id);
 	}
 
@@ -42,217 +47,150 @@
 		newUserGoal = { ...$userGoal }; // copy the object
 	}
 
-	async function addWeight(weight) {
-		if (validateInput(weight)) {
-			await invoke('weight_in', { logId: $logId, weight });
-			todaysLog.weight = weight;
-			editWeight = false;
-		}
-	}
-
-	// functions to edit the user's goal
-	async function updateWeightGoal() {
-		// turn into number (currently string)
-		userGoal.set(await invoke('update_weight_goal', { newUserGoal }));
-		editWeightGoal = false;
-	}
-
-	async function updateCaloriesGoal() {
-		userGoal.set(await invoke('update_calories_goal', { newUserGoal }));
-		editCaloriesGoal = false;
-	}
-
-	async function updateMacrosGoal() {
-		userGoal.set(await invoke('update_macros_goal', { newUserGoal }));
-		editMacrosGoal = false;
-	}
-
 	onMount(async () => {
 		await getOrCreateTodaysLog();
 		await getOrCreateUserGoal();
+		if (!todaysLog.weight) {
+			newWeightEditable = true; 
+		} else {
+			newWeight = todaysLog.weight;
+			displayedUnits = todaysLog.units.toLowerCase(); 
+		}
 	});
 
-	let validationError = '';
-	function validateInput(weight) {
-		if (weight === undefined) {
-			validationError = $_('error.undefinedWeight');
-			return false;
+	async function updateWeight() {
+		try {
+			const updatedLog = await invoke('weight_in', { logId: $logId, weight: Number(newWeight), units: newUnits.value});
+			todaysLog = {...updatedLog};
+			newWeightEditable = false; 
+			displayedUnits = newUnits.value;
+		} catch(error) {
+			console.log(error); 
 		}
-		if (weight < 0 || weight > 999) {
-			validationError = $_('error.invalidWeight');
-			return false;
-		}
-		return true;
 	}
+
+	async function updateUserGoal() {
+		try {
+			newUserGoal = await invoke('update_user_goal', { newUserGoal: 
+				{...newUserGoal, 
+				protein: Number(newUserGoal.protein), 
+				carbohydrate: Number(newUserGoal.carbohydrate), fat: Number(newUserGoal.fat), weight: Number(newUserGoal.weight), calories: Number(newUserGoal.calories)
+				}
+			});
+			userGoal.set(newUserGoal);
+			goalsEditable = false; 
+		} catch(error) {
+			console.log(error); 
+		}
+	}
+
+	function cancelUpdateWeight() {
+		displayedUnits = todaysLog.units.toLowerCase(); 
+		newWeight = todaysLog.weight;
+		newWeightEditable = !newWeightEditable;
+		newUnits = null; 
+	}
+
+	function cancelUpdateGoal() {
+		newUserGoal = { ...$userGoal }; // re-copy 
+		goalsEditable = !goalsEditable;
+	}
+
+
 </script>
 
-<div class="mx-4">
-	<div class="flex items-center justify-center">
-		<h3 class="text-neutral-700 text-xl m-2 font-bold">{$_('home.weightIn')}:</h3>
-		
-		{#if todaysLog.weight > 0}
-			<h3 class="text-neutral-700 text-xl my-2 font-bold mx-2">{todaysLog.weight} kg</h3>
-
-			<button class="icon-button" on:click={() => (editWeight = !editWeight)}>
-				{#if !editWeight}
-					<SvgEdit />
+<div class="mx-4 space-y-4">
+	<Card.Root>
+		<Card.Header>
+			<Card.Title>Weight-in</Card.Title>
+			<Card.Description>Insert or edit your weight for today in whatever units you prefer.</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			<div class="grid grid-cols-3 gap-4 w-1/2 mx-auto">
+				<Input type="number" class="col-span-2" bind:value={newWeight} disabled={!newWeightEditable} />
+				<Select.Root bind:selected={newUnits} disabled={!newWeightEditable}>
+					<Select.Trigger>
+						<Select.Value placeholder={displayedUnits??'Units'}/>
+					</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="Kg" label="kg"/>
+						<Select.Item value="Lbs" label="lbs"/>
+					</Select.Content>
+				</Select.Root>
+			</div>
+		</Card.Content>
+		<Card.Footer class="flex justify-between">
+			<Button variant="secondary" on:click={() => cancelUpdateWeight()} disabled={!todaysLog.weight}>
+				{#if newWeightEditable}
+				<PenOff class="mr-2 w-4 h-4" /> Cancel 
 				{:else}
-					<SvgCancel />
+				<PencilLine class="mr-2 w-4 h-4"/> Edit
 				{/if}
-			</button>
-		{/if}
-	</div>
-
-	<!-- EDITING WEIGHT -->
-	<div class="flex flex-col items-center justify-center">
-		{#if (todaysLog.weight <= 0 || editWeight) && !validationError}
-			<MaterialFloatingLabel bind:value={weight} label="{$_('home.newWeight')} (kg)" type="number" />
-		{/if}
-
-		{#if validationError && (editWeight || todaysLog.weight <= 0) } 
-			<MaterialFloatingLabelError
-				bind:value={weight}
-				error={$_('home.invalidWeight')}
-				errorMessage={validationError}
-				type="number"
-			/>
-		{/if}
-
-		{#if editWeight || todaysLog.weight <= 0}
-			<button class="icon-button" on:click={addWeight(weight)}>
-				<SvgOk />
-			</button>
-		{/if}
-	</div>
+			</Button>
+			{#if newWeightEditable}
+			<Button disabled={!newUnits || !newWeight || newWeight < 0} on:click={() => updateWeight()}>
+				<Check class="mr-2 w-4 h-4" />
+				Save
+			</Button>
+			{/if}
+		</Card.Footer>
+	</Card.Root>
 
 	<!-- ************* -->
 	<!-- GOALS SECTION -->
 	<!-- ************* -->
 
-	<div
-		class="flex flex-col items-center justify-center border-b-2 border-neutral-200 border-opacity-100"
-	>
-		<h3 class="text-neutral-700 text-xl m-4 font-bold">{$_('home.goals')}</h3>
+	<Card.Root>
+		<Card.Header>
+			<Card.Title>Goals</Card.Title>
+			<Card.Description>Set up your weight, calories and macronutrient targets.</Card.Description>
+		</Card.Header>
+		<Card.Content>
+			<div class="grid grid-cols-6 gap-4">
+				<Label class="text-right">Weight</Label>
+				<Input type="number" bind:value={newUserGoal.weight} disabled={!goalsEditable}/>
 
-		<ul
-			class="w-72 text-lg tracking-tight font-medium text-neutral-900 bg-white border border-gray-200 rounded-lg"
-		>
-			<li class="w-full px-4 py-2 border-b border-gray-200 rounded-t-lg">
-				{$_('weight')}
+				<Label class="text-right">Daily Calories<br/>(kcal)</Label>
+				<Input type="number" class="col-span-3" disabled={!goalsEditable} bind:value={newUserGoal.calories}/>
 
-				{#if !editWeightGoal}
-					<GradientButton onClick={() => (editWeightGoal = !editWeightGoal)}>
-						<SvgEdit />
-					</GradientButton>
-				{:else}
-					<GradientButton onClick={() => (editWeightGoal = !editWeightGoal)}>
-						<SvgCancel />
-					</GradientButton>
-				{/if}
-
-				<!--CONFIRMATION BUTTON  -->
-				{#if editWeightGoal}
-					<GradientButton onClick={updateWeightGoal}>
-						<SvgOk />
-					</GradientButton>
-				{/if}
-
-				{#if editWeightGoal}
-					<div class="mt-4">
-						<MaterialFloatingLabel
-							bind:value={newUserGoal.weight}
-							label={$_('home.newTarget')}
-							type="number"
-						/>
-					</div>
-				{:else}
-					<p class="text-sm tracking-tight">
-						{$userGoal.weight} kg
-					</p>
-				{/if}
-			</li>
-
-			<li class="w-full px-4 py-2 border-b border-gray-200">
-				{$_('home.dailyCalories')}
-				{#if !editCaloriesGoal}
-					<GradientButton onClick={() => (editCaloriesGoal = !editCaloriesGoal)}>
-						<SvgEdit />
-					</GradientButton>
-				{:else}
-					<GradientButton onClick={() => (editCaloriesGoal = !editCaloriesGoal)}>
-						<SvgCancel />
-					</GradientButton>
-				{/if}
-
-				{#if editCaloriesGoal}
-					<GradientButton onClick={updateCaloriesGoal}>
-						<SvgOk />
-					</GradientButton>
-				{/if}
-
-				{#if editCaloriesGoal}
-					<div class="mt-4">
-						<MaterialFloatingLabel
-							bind:value={newUserGoal.calories}
-							label={$_('home.newTarget')}
-							type="number"
-						/>
-					</div>
-				{:else}
-					<p class="text-sm tracking-tight">
-						{$userGoal.calories} kcal
-					</p>
-				{/if}
-			</li>
-			<li class="w-full px-4 py-2">
-				{$_('home.macronutrients')}
+				<Label class="text-right">Protein<br/>(g)</Label>
+				<Input type="number" disabled={!goalsEditable} bind:value={newUserGoal.protein}/>
 				
-				{#if !editMacrosGoal}
-					<GradientButton onClick={() => (editMacrosGoal = !editMacrosGoal)}>
-						<SvgEdit />
-					</GradientButton>
-				{:else}
-					<GradientButton onClick={() => (editMacrosGoal = !editMacrosGoal)}>
-						<SvgCancel />
-					</GradientButton>
-				{/if}
-				{#if editMacrosGoal}
-				<GradientButton onClick={updateMacrosGoal}>
-					<SvgOk />
-				</GradientButton>
-				{/if}
+				<Label class="text-right">Carbohydrate<br/>(g)</Label>
+				<Input type="number" disabled={!goalsEditable} bind:value={newUserGoal.carbohydrate}/>
 				
-
-				{#if editMacrosGoal}
-					<div class="flex items-center text-sm mt-4">
-						<MaterialFloatingLabel
-							type="number"
-							label="{$_('protein')} (g)"
-							bind:value={newUserGoal.protein}
-						/> ≈ {newUserGoal.protein * 4} kcal
-					</div>
-					<div class="flex items-center text-sm">
-						<MaterialFloatingLabel
-							type="number"
-							label="{$_('carbohydrates')} (g)"
-							bind:value={newUserGoal.carbohydrate}
-						/> ≈ {newUserGoal.carbohydrate * 4} kcal
-					</div>
-
-					<div class="flex items-center text-sm">
-						<MaterialFloatingLabel type="number" label="{$_('fats')} (g)" bind:value={newUserGoal.fat} />
-						≈ {newUserGoal.fat * 9} kcal
-					</div>
-				{:else}
-					<p class="text-sm tracking-tight my-2">{$userGoal.protein} g {$_('protein')}</p>
-					<p class="text-sm tracking-tight my-2">{$userGoal.carbohydrate} g {$_('carbohydrates')}</p>
-					<p class="text-sm tracking-tight my-2">{$userGoal.fat} g {$_('fats')}</p>
+				<Label class="text-right">Total Fat<br/>(g)</Label>
+				<Input type="number" disabled={!goalsEditable} bind:value={newUserGoal.fat}/>
+			</div>
+			<div class="flex justify-between mt-4">
+				<Button variant="secondary" on:click={() => cancelUpdateGoal()}>
+					{#if goalsEditable}
+					<PenOff class="mr-2 w-4 h-4" /> Cancel 
+					{:else}
+					<PencilLine class="mr-2 w-4 h-4"/> Edit
+					{/if}
+				</Button>
+				{#if goalsEditable}
+				<Button on:click={() => updateUserGoal()}
+				disabled={!newUserGoal.weight || !newUserGoal.calories || !newUserGoal.protein || !newUserGoal.carbohydrate || !newUserGoal.fat || isNaN(newUserGoal.weight) || isNaN(newUserGoal.calories) || isNaN(newUserGoal.carbohydrate) || isNaN(newUserGoal.protein) || isNaN(newUserGoal.fat) || newUserGoal.weight < 0 || newUserGoal.calories < 0 || newUserGoal.protein < 0 || newUserGoal.carbohydrate < 0 || newUserGoal.fat < 0}	
+				>
+					<Check class="mr-2 w-4 h-4" />
+					Save
+				</Button>
 				{/if}
-				<p class="text-sm tracking-tight my-2"><b>{$_('home.estimateCals')}</b> {calories} kcal</p>
-				<div class="-mt-10">
-				<MacrosPie {macros} />
+			</div>
+		</Card.Content>
+
+		<Card.Footer>
+			<div class="flex flex-col items-center mx-auto">
+				<div>
+					<Label>{$_('home.estimateCals')}</Label>
+					<span class="text-sm">{calories} kcal</span>
 				</div>
-			</li>
-		</ul>
-	</div>
+				<div class="-my-10">
+					<MacrosPie {macros} />
+				</div>
+			</div>
+		</Card.Footer>
+	</Card.Root>
 </div>

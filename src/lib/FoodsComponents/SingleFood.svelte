@@ -64,7 +64,7 @@
 			<X class="w-4 h-4"/>
 		</Button>
 	</div>
-	<Card.Header>
+	<Card.Header class="pt-0">
 		<Card.Title class="capitalize">
 			{foodNormalized.name}
 		</Card.Title>
@@ -125,9 +125,9 @@
 		</div>
 	</Card.Content>
 	<Card.Footer>
-		<div class="flex w-full justify-between min-h-10">
+		<div class="flex w-full justify-right min-h-10">
 		{#if editable}
-			<Button on:click={updateFood}>
+			<Button on:click={updateFood} class="ml-auto">
 				<Check class="mr-2 h-4 w-4" />
 				Save
 			</Button>

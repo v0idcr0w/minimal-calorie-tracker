@@ -30,6 +30,7 @@ Huge thanks to the following sources, because the design of this app would be te
 - [x] Meals Tab
 - [x] Meal History Tab
 - [x] Logs Tab
-- [ ] Home Tab 
-- [ ] Navigation Bar (Copy the Code from Shadcn-Svelte "Blocks")
+- [x] Home Tab 
+- [x] Navigation Bar (Copy the Code from Shadcn-Svelte "Blocks")
 - [ ] Charts Tab
+- [ ] Theming

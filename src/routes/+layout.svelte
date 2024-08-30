@@ -19,51 +19,38 @@
 		currentPage.set(page); 
 	}
 </script>
-<header>
-	<div class="text-sm font-medium text-center text-gray-500 border-b border-gray-200 ">
-		<ul class="flex flex-wrap -mb-px justify-center">
-			<li class="mr-2">
-				<a href="/" on:click={() => selectPage('/')} class="inline-block p-4 border-b-2 border-transparent rounded-t-lg  {$currentPage === '/' ? 'text-purple-600 border-purple-600 active' : 'hover:text-gray-600 hover:border-gray-300'}">
-					{$_('home.nav')}
-				</a>
-			</li>
-			<li class="mr-2">
-				<a href="/foods" on:click={() => selectPage('/foods')} class="inline-block p-4 border-b-2 border-transparent rounded-t-lg  {$currentPage === '/foods' ? 'text-purple-600 border-purple-600 active' : 'hover:text-gray-600 hover:border-gray-300'}">
-					{$_('foods.nav')}
-				</a>
-			</li>
-			<li class="mr-2">
-				<a href="/recipes" on:click={() => selectPage('/recipes')} class="inline-block p-4 border-b-2 border-transparent rounded-t-lg  {$currentPage === '/recipes' ? 'text-purple-600 border-purple-600 active' : 'hover:text-gray-600 hover:border-gray-300'}">
-					{$_('recipes.nav')}
-				</a>
-			</li>
-			<li class="mr-2">
-				<a href="/meals" on:click={() => selectPage('/meals')} class="inline-block p-4 border-b-2 border-transparent rounded-t-lg  {$currentPage === '/meals' ? 'text-purple-600 border-purple-600 active' : 'hover:text-gray-600 hover:border-gray-300'}">
-					{$_('meals.nav')}
-				</a>
-			</li>
-			<li class="mr-2">
-				<a href="/meal_history" on:click={() => selectPage('/meal_history')} class="inline-block p-4 border-b-2 border-transparent rounded-t-lg  {$currentPage === '/meal_history' ? 'text-purple-600 border-purple-600 active' : 'hover:text-gray-600 hover:border-gray-300'}">
-					{$_('meal_history.nav')}
-				</a>
-			</li>
-			<li class="mr-2">
-				<a href="/logging" on:click={() => selectPage('/logging')}  class="inline-block p-4 border-b-2 border-transparent rounded-t-lg  {$currentPage === '/logging' ? 'text-purple-600 border-purple-600 active' : 'hover:text-gray-600 hover:border-gray-300'}">
-					{$_('logs.nav')}
-				</a>
-			</li>
-			<li class="mr-2">
-				<a href="/graphs" on:click={() => selectPage('/graphs')}  class="inline-block p-4 border-b-2 border-transparent rounded-t-lg  {$currentPage === '/graphs' ? 'text-purple-600 border-purple-600 active' : 'hover:text-gray-600 hover:border-gray-300'}">
-					{$_('charts.nav')}
-				</a>
-			</li>
-			<div class="inline-flex my-2">
-				<LanguageSelection />
-				</div>
-		</ul>
-		
-	</div>
+
+<header class="border-border/40 bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
+	<nav class="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+		<a href="##" class="flex items-center gap-2 text-lg font-semibold md:text-base">
+			<span class="sr-only"></span>
+		  </a>
+		  <a href="/" on:click={() => selectPage('/')} class="{$currentPage === '/' ? 'text-foreground': 'text-muted-foreground'} hover:text-foreground transition-colors">
+			{$_('home.nav')}
+		  </a>
+		  <a href="/foods" on:click={() => selectPage('/foods')} class="{$currentPage === '/foods' ? 'text-foreground': 'text-muted-foreground'} hover:text-foreground transition-colors">
+			{$_('foods.nav')}
+		  </a>
+		  <a href="/recipes" on:click={() => selectPage('/recipes')} class="{$currentPage === '/recipes' ? 'text-foreground': 'text-muted-foreground'} hover:text-foreground transition-colors">
+			{$_('recipes.nav')}
+		  </a>
+		  <a href="/meals" on:click={() => selectPage('/meals')} class="{$currentPage === '/meals' ? 'text-foreground': 'text-muted-foreground'} hover:text-foreground transition-colors">
+			{$_('meals.nav')}
+		  </a>
+		  <a href="/meal_history" on:click={() => selectPage('/meal_history')} class="{$currentPage === '/meal_history' ? 'text-foreground': 'text-muted-foreground'} hover:text-foreground transition-colors">
+			{$_('meal_history.nav')}
+		  </a>
+		  <a href="/logging" on:click={() => selectPage('/logging')} class="{$currentPage === '/logging' ? 'text-foreground': 'text-muted-foreground'} hover:text-foreground transition-colors">
+			{$_('logs.nav')}
+		  </a>
+		  <a href="/graphs" on:click={() => selectPage('/graphs')} class="{$currentPage === '/graphs' ? 'text-foreground': 'text-muted-foreground'} hover:text-foreground transition-colors">
+			{$_('charts.nav')}
+		  </a>
+		  <div class="inline-flex my-2">
+			<LanguageSelection />
+		  </div>
+	</nav>
 </header>
 
-
+<!-- ! BODY -->
 <slot></slot>

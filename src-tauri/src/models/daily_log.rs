@@ -1,4 +1,4 @@
-use sqlx::{FromRow, SqlitePool, types::chrono::NaiveDate}; 
+use sqlx::{FromRow, SqlitePool, types::chrono::NaiveDate, Type}; 
 use serde::{Serialize, Deserialize};
 use super::macros_total::MacrosTotal;
 
@@ -6,6 +6,7 @@ use super::macros_total::MacrosTotal;
 pub struct DailyLog {
     pub id: i32, 
     pub weight: f64,
+    pub units: WeightUnits,
     pub total_protein: f64, 
     pub total_carbohydrate: f64, 
     pub total_fat: f64, 
@@ -13,10 +14,16 @@ pub struct DailyLog {
     pub entry_date: NaiveDate, 
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize, Type)]
+#[repr(i32)]
+pub enum WeightUnits {
+    Kg = 0,
+    Lbs = 1,
+}
 
 impl DailyLog {
-    pub fn new(entry_date: NaiveDate) -> Self {
-        Self { id: 0, weight: 0.0, total_protein: 0.0, total_carbohydrate: 0.0, total_fat: 0.0, total_calories: 0.0, entry_date }
+    pub fn new(entry_date: NaiveDate, units: WeightUnits) -> Self {
+        Self { id: 0, units, weight: 0.0, total_protein: 0.0, total_carbohydrate: 0.0, total_fat: 0.0, total_calories: 0.0, entry_date }
     }
     pub fn update_macros(mut self, macros: MacrosTotal) -> Self {
         self.total_protein = macros.protein; 
@@ -38,9 +45,10 @@ impl DailyLog {
 
         log
     }
-    pub async fn update_weight(self, new_weight: f64, db: &SqlitePool) -> Result<Self, sqlx::Error> {
-        let updated_log = sqlx::query_as("UPDATE daily_logs SET weight = ? WHERE id = ? RETURNING *")
+    pub async fn update_weight(self, new_weight: f64, new_units: WeightUnits, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+        let updated_log = sqlx::query_as("UPDATE daily_logs SET weight = ?, units = ? WHERE id = ? RETURNING *")
         .bind(new_weight)
+        .bind(new_units)
         .bind(self.id)
         .fetch_one(db)
         .await;
