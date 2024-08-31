@@ -16,6 +16,8 @@
 	import 'chartjs-adapter-date-fns'; 
 	ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, TimeScale);
 	import { CalendarDate } from '@internationalized/date';
+	import { Label } from '$lib/components/ui/label'; 
+	import {formatDateYYYYMMDD} from '$lib/formatDate.js'; 
 	import RangeDate from './RangeDate.svelte';
 
 	// State variables
@@ -25,21 +27,6 @@
 	let firstDate; 
 	let lastDate; 
 	let value; 
-
-	// slider variables
-	const minDays = 2;
-	let maxDays = minDays;
-
-	// default percentage
-	let percentage = 70;
-	$: gradient = `linear-gradient(90deg, #805AD5 ${percentage}%, #d3d3d3 ${percentage}%)`;
-	$: days = maxDays <= minDays ? minDays : Math.round((percentage / 100) * (maxDays-minDays)) + minDays;
-
-	function formatDate(dateString) {
-		const options = { day: '2-digit', month: 'short' };
-		const date = new Date(dateString);
-		return date.toLocaleDateString(undefined, options);
-	}
 
 	onMount(async () => {
 		// getting all logs info
@@ -61,16 +48,18 @@
 		};
 		
 		// filter calories greater than 0 
-		dataCalories = logs.map((log) => ({x: formatDate(log.entry_date), y: log.total_calories.toFixed(0)}) )
+		dataCalories = logs.map((log) => ({x: log.entry_date, y: log.total_calories.toFixed(0)}) )
 		.filter((obj) => obj.y > 0) 
 		.sort((a, b) => new Date(a.x) - new Date(b.x));     
 		
 		// filter weight data greater than 0 
-		dataWeight = logs.map((log) => ({x: formatDate(log.entry_date), y: log.weight.toFixed(2)}))
+		dataWeight = logs.map((log) => ({x: log.entry_date, y: log.weight.toFixed(2)}))
 		.filter((obj) => obj.y > 0)
 		.sort((a, b) => new Date(a.x) - new Date(b.x)); 
+
+
+		console.log(dataCalories); 
 		
-		maxDays = Math.max(dataWeight.length, dataCalories.length);
 	});
 
 	$: data = {
@@ -95,7 +84,7 @@
 				pointHoverBorderWidth: 2,
 				pointRadius: 1,
 				pointHitRadius: 10,
-				data: dataCalories.slice(-days)
+				data: (value && value.start && value.end) ? dataCalories.filter(point => new Date(point.x) >= value.start.toDate() && new Date(point.x) <= value.end.toDate()) : dataCalories 
 			},
 			{
 				label: $_('weight'),
@@ -117,7 +106,7 @@
 				pointHoverBorderWidth: 2,
 				pointRadius: 1,
 				pointHitRadius: 10,
-				data: dataWeight.slice(-days)
+				data: (value && value.start && value.end) ? dataWeight.filter(point => new Date(point.x) >= value.start.toDate() && new Date(point.x) <= value.end.toDate()) : dataWeight 
 			}
 		]
 	};
@@ -130,7 +119,7 @@
 			x: {
 				type: 'time', 
 				time: {
-					parser: 'dd MMM', 
+					parser: 'yyyy-MM-dd', 
 					tooltipFormat: 'dd MMM yyyy'
 				}, 
 				title: {
@@ -139,7 +128,7 @@
 				}, 
 				ticks: {
 					autoSkip: true, // auto skip labels
-					maxTicksLimit: days, // limit the number of labels
+					// maxTicksLimit: days, // limit the number of labels
 				}
 			},
 			y1: {
@@ -163,40 +152,12 @@
 </script>
 
 <div class="mx-4">
-	<RangeDate bind:value/> 
-	<div class="text-sm tracking-tight leading-loose block">
-		<span class="mr-4">
-		{$_('charts.slider')} {String(days).padStart(2, '0')}
-		{days === 1 ?  $_('day.singular') :  $_('day.plural') }
-	</span>
-		<input
-			id="default-range"
-			type="range"
-			bind:value={percentage}
-			min="1"
-			max="100"
-			class="w-96 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-			style="background: {gradient};"
-		/>
+	<!-- Date selector -->
+	<div class="flex space-x-2 items-center pb-4">
+		<Label>Select date range for plotting</Label> <RangeDate bind:value/> 
 	</div>
-
+	<!-- ! The chart -->
 	<div>
 		<Line {data} {options} />
 	</div>
 </div>
-
-<style lang="postcss">
-	input[type='range'] {
-		-webkit-appearance: none;
-	}
-
-	input[type='range']::-webkit-slider-thumb {
-		-webkit-appearance: none;
-		border: none;
-		height: 16px;
-		width: 16px;
-		border-radius: 50%;
-		background: rgb(49, 46, 129);
-		margin-top: 0px;
-	}
-</style>

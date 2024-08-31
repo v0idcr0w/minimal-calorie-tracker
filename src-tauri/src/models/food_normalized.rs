@@ -1,4 +1,4 @@
-use sqlx::{FromRow, SqlitePool}; 
+use sqlx::{FromRow, SqlitePool, Sqlite, Transaction}; 
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, FromRow)] 
@@ -52,11 +52,11 @@ impl FoodNormalized {
         .await;
         food
     }
-    pub async fn update_name(self, new_name: &str, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn update_name<'a>(self, new_name: &str, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let updated_food: Result<Self, _> = sqlx::query_as("UPDATE foods_normalized SET name = ? WHERE id = ? RETURNING *")
         .bind(new_name.to_lowercase())
         .bind(self.id)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await;
         updated_food
     }
@@ -81,10 +81,10 @@ impl FoodNormalized {
 
         Ok(())
     }
-    pub async fn get_by_id(id: i32, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn get_by_id<'a>(id: i32, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let food: Result<Self, _> = sqlx::query_as("SELECT * FROM foods_normalized WHERE id = ?")
         .bind(id)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await;
         food
     }

@@ -2,7 +2,10 @@
 	import '../styles.css'; 
 	import { writable } from 'svelte/store';
 	import { init, getLocaleFromNavigator, locale, dictionary, _ } from 'svelte-i18n';
-	import LanguageSelection from '../lib/LanguageSelection.svelte'; 
+	import LanguageSelection from '$lib/LanguageSelection.svelte'; 
+	import { ModeWatcher, toggleMode } from 'mode-watcher'; 
+	import { Sun, Moon } from 'lucide-svelte';
+	import { Button } from '$lib/components/ui/button';
 
 	import en from '../lang/en.json';
 	import pt_br from '../lang/pt_br.json';
@@ -49,8 +52,20 @@
 		  <div class="inline-flex my-2">
 			<LanguageSelection />
 		  </div>
+		  <div class="inline-flex my-2">
+			<Button on:click={toggleMode} variant="outline" size="icon">
+				<Sun
+				  class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+				/>
+				<Moon
+				  class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+				/>
+				<span class="sr-only">Toggle theme</span>
+			  </Button>
+		  </div>
 	</nav>
 </header>
 
 <!-- ! BODY -->
+<ModeWatcher/>
 <slot></slot>

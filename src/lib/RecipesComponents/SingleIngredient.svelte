@@ -66,7 +66,7 @@
 	</div>
 	<div class="grid grid-cols-7 items-center w-full">
 		<Label class="capitalize col-span-2 text-sm">{ingredient.name}</Label>
-		<Input type="number" bind:value={newAmount} readonly={!editable} class="col-span-2 text-xs {editable ? "bg-white" : "bg-gray-50"}" />
+		<Input type="number" bind:value={newAmount} readonly={!editable} class="col-span-2 text-xs {editable ? 'bg-background' : 'bg-muted/60'}" />
 		<Label class="col-span-1 text-center text-sm">{ingredient.unit}</Label>
 		{#if editable}
 		<Button size="icon" variant="ghost" class="rounded-full text-emerald-600" on:click={updateIngredient}>

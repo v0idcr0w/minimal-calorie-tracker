@@ -107,7 +107,10 @@ async fn update_food_normalized(food: FoodNormalized, state: State<'_, AppState>
 
 #[tauri::command]
 async fn update_food_normalized_name(id: i32, new_name: String, state: State<'_, AppState>) -> Result<FoodNormalized, Error> {
-  let food = FoodNormalized::get_by_id(id, &state.pool).await?.update_name(&new_name, &state.pool).await?;  
+  let mut tx = state.pool.begin().await?; 
+  let food = FoodNormalized::get_by_id(id, &mut tx).await?.update_name(&new_name, &mut tx).await?;  
+
+  tx.commit().await?;
   Ok(food)
 }
 
@@ -146,27 +149,12 @@ async fn delete_meal(meal: Meal, state: State<'_, AppState>) -> Result<(), Error
 async fn add_new_food(selected_id: i32, amount: f64, meal_id: i32, state: State<'_, AppState>) -> Result<Food, Error> {
   // query db for food normalized with the selected id
   let mut tx = state.pool.begin().await?; 
-  let food_normalized = sqlx::query_as("SELECT * FROM foods_normalized WHERE id = ?")
-    .bind(selected_id)
-    .fetch_one(&mut *tx)
-    .await?;
+
+  let food_normalized = FoodNormalized::get_by_id(selected_id, &mut tx).await?;
   // create food obj and add to db
-  let food = Food::from_food_normalized(food_normalized, meal_id, amount, 0); 
-  let food = sqlx::query_as("INSERT INTO foods (meal_id, food_normalized_id, name, amount, unit, protein, carbohydrate, fat, calories) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *")
-    .bind(food.meal_id)
-    .bind(food.food_normalized_id)
-    .bind(food.name)
-    .bind(food.amount)
-    .bind(food.unit)
-    .bind(food.protein)
-    .bind(food.carbohydrate)
-    .bind(food.fat)
-    .bind(food.calories)
-    .fetch_one(&mut *tx)
-    .await?;
+  let food = Food::from_food_normalized(food_normalized, meal_id, amount, 0).create(&mut tx).await?;
 
   tx.commit().await?;
-
   Ok(food)
 }
 
@@ -275,28 +263,39 @@ async fn get_all_logs(state: State<'_, AppState>) -> Result<Vec<DailyLog>, Error
 
 #[tauri::command]
 async fn get_todays_log(state: State<'_, AppState>) -> Result<DailyLog, Error> {
+  let mut tx = state.pool.begin().await?; 
+  
   let today = Local::now().date_naive();  
-  let query = DailyLog::get_by_date(today, &state.pool).await;
-  match query {
+  let query = DailyLog::get_by_date(today, &mut tx).await;
+  let result = match query {
     Ok(log) => Ok(log), 
     Err(_) => {
-      let new_log = DailyLog::new(today, WeightUnits::Kg).create(&state.pool).await?;
+      let new_log = DailyLog::new(today, WeightUnits::Kg).create(&mut tx).await?;
       Ok(new_log)
     }
-  } 
+  }; 
+
+  tx.commit().await?;
+  result 
 }
 
 #[tauri::command]
 async fn weight_in(log_id: i32, weight: f64, units: WeightUnits, state: State<'_, AppState>) -> Result<DailyLog, Error> {
-  let updated_log = DailyLog::get_by_id(log_id, &state.pool).await?.update_weight(weight, units, &state.pool).await?;
+  let mut tx = state.pool.begin().await?; 
 
+  let updated_log = DailyLog::get_by_id(log_id, &mut tx).await?.update_weight(weight, units, &mut tx).await?;
+
+  tx.commit().await?; 
   Ok(updated_log)
 }
 
 #[tauri::command]
 async fn update_log_totals(log_id: i32, daily_totals: MacrosTotal, state: State<'_, AppState>) -> Result<DailyLog, Error> {
-  let updated_log = DailyLog::get_by_id(log_id, &state.pool).await?.update_macros(daily_totals).update(&state.pool).await?;
+  let mut tx = state.pool.begin().await?; 
 
+  let updated_log = DailyLog::get_by_id(log_id, &mut tx).await?.update_macros(daily_totals).update(&mut tx).await?;
+
+  tx.commit().await?;
   Ok(updated_log)
 }
 
@@ -315,29 +314,34 @@ async fn get_all_recipes(state: State<'_, AppState>) -> Result<Vec<Recipe>, Erro
 
 #[tauri::command]
 async fn update_recipe(recipe: Recipe, state: State<'_, AppState>) -> Result<Recipe, Error> {
-  let mut recipe_from_db = Recipe::get_by_id(recipe.id, &state.pool).await?.update_serving_size(recipe.serving_size, recipe.unit); 
+  let mut tx = state.pool.begin().await?;
+  let mut recipe_from_db = Recipe::get_by_id(recipe.id, &mut tx).await?.update_serving_size(recipe.serving_size, recipe.unit); 
   // update name if required
   recipe_from_db.name = recipe.name; 
-  let updated_recipe = recipe_from_db.update(&state.pool).await?;
-
+  let updated_recipe = recipe_from_db.update(&mut tx).await?;
+  tx.commit().await?;
   Ok(updated_recipe)
 }
 
 #[tauri::command]
 async fn delete_recipe(recipe_id: i32, state: State<'_, AppState>) -> Result<(), Error> {
-  Recipe::get_by_id(recipe_id, &state.pool).await?.delete(&state.pool).await?; 
+  let mut tx = state.pool.begin().await?;
+  Recipe::get_by_id(recipe_id, &mut tx).await?.delete(&mut tx).await?; 
+  tx.commit().await?; 
   Ok(())
 }
 
 #[tauri::command]
 async fn add_ingredient_to_recipe(ingredient_list: Vec<FoodNormalized>, recipe_id: i32, state: State<'_, AppState>) -> Result<Vec<Ingredient>, Error> {
   // receives a list of ingredients as normalized food items and recipe id, then creates new ingriedients with a default amount of 0.0. returns the list of ingredients as inserted in the database. 
+  let mut tx = state.pool.begin().await?;
   let mut ingredients_from_db: Vec<Ingredient> = vec![];  
   for ingredient in ingredient_list.into_iter() {
-    let ingredient_from_db = Ingredient::from(ingredient, recipe_id, 0.0).create(&state.pool).await?;
+    let ingredient_from_db = Ingredient::from(ingredient, recipe_id, 0.0).create(&mut tx).await?;
     ingredients_from_db.push(ingredient_from_db);
   }
 
+  tx.commit().await?;
   Ok(ingredients_from_db)
 }
 
@@ -349,44 +353,50 @@ async fn get_ingredients_by_recipe_id(recipe_id: i32, state: State<'_, AppState>
 
 #[tauri::command]
 async fn update_ingredient_amount(mut ingredient: Ingredient, new_amount: f64, state: State<'_, AppState>) -> Result<Recipe, Error> {
+  let mut tx = state.pool.begin().await?;
   // update ingredient 
   let macros_before = ingredient.into_macros_total(); 
-  let ingredient_as_food = FoodNormalized::get_by_id(ingredient.food_normalized_id, &state.pool).await?; 
-  ingredient = ingredient.update(new_amount, ingredient_as_food, &state.pool).await?;
+  let ingredient_as_food = FoodNormalized::get_by_id(ingredient.food_normalized_id, &mut tx).await?; 
+  ingredient = ingredient.update(new_amount, ingredient_as_food, &mut tx).await?;
 
   // calculate the macro difference 
   let delta_macros = ingredient.into_macros_total() - macros_before;
 
   // update recipe  
-  let recipe = Recipe::get_by_id(ingredient.recipe_id, &state.pool).await?.update_macros(delta_macros).update(&state.pool).await?;
+  let recipe = Recipe::get_by_id(ingredient.recipe_id, &mut tx).await?.update_macros(delta_macros).update(&mut tx).await?;
 
+  tx.commit().await?; 
   Ok(recipe)
 }
 
 #[tauri::command]
 async fn delete_ingredient_from_recipe(ingredient: Ingredient, state: State<'_, AppState>) -> Result<Recipe, Error> {
-  
+  let mut tx = state.pool.begin().await?;
   let recipe_id = ingredient.recipe_id; 
   // calculate the macro difference 
   let delta_macros = ingredient.into_macros_total() * (-1.0);
   // delete ingredient 
-  ingredient.delete(&state.pool).await?;
+  ingredient.delete(&mut tx).await?;
   // update recipe  
-  let recipe = Recipe::get_by_id(recipe_id, &state.pool).await?.update_macros(delta_macros).update(&state.pool).await?;
+  let recipe = Recipe::get_by_id(recipe_id, &mut tx).await?.update_macros(delta_macros).update(&mut tx).await?;
 
+  tx.commit().await?; 
   Ok(recipe)
 }
 
 #[tauri::command]
 async fn get_user_goal(state: State<'_, AppState>) -> Result<UserGoal, Error> {
-  let result = UserGoal::get_by_id(1, &state.pool).await; 
-  match result {
+  let mut tx = state.pool.begin().await?;
+  let result = UserGoal::get_by_id(1, &mut tx).await; 
+  let user_goal = match result {
     Ok(goal) => Ok(goal), 
     Err(_) => {
-      let new_goal = UserGoal::new(0.0, 0.0, 0.0, 0.0, 2000.0).create(&state.pool).await?;
+      let new_goal = UserGoal::new(0.0, 0.0, 0.0, 0.0, 2000.0).create(&mut tx).await?;
       Ok(new_goal)
     }
-  } 
+  };
+  tx.commit().await?;
+  user_goal
 }
 
 #[tauri::command]
@@ -420,25 +430,33 @@ async fn get_constant_meals(log_id: i32, state: State<'_, AppState>) -> Result<V
 
 #[tauri::command]
 async fn update_meal_is_constant(meal_id: i32, status: bool, state: State<'_, AppState>) -> Result<Meal, Error> {
-  let updated_meal = Meal::get_by_id(meal_id, &state.pool).await?.update_constant_status(status, &state.pool).await?;
+  let mut tx = state.pool.begin().await?;
+  let updated_meal = Meal::get_by_id(meal_id, &mut tx).await?.update_constant_status(status, &mut tx).await?;
+  tx.commit().await?;
   Ok(updated_meal)
 }
 
 #[tauri::command]
 async fn update_meal_is_disabled(meal_id: i32, status: bool, state: State<'_, AppState>) -> Result<Meal, Error> {
-  let updated_meal = Meal::get_by_id(meal_id, &state.pool).await?.update_disabled_status(status, &state.pool).await?;
+  let mut tx = state.pool.begin().await?;
+  let updated_meal = Meal::get_by_id(meal_id, &mut tx).await?.update_disabled_status(status, &mut tx).await?;
+  tx.commit().await?;
   Ok(updated_meal)
 }
 
 #[tauri::command]
 async fn update_meal_name(meal_id: i32, new_name: String, state: State<'_, AppState>) -> Result<Meal, Error> {
-  let updated_meal = Meal::get_by_id(meal_id, &state.pool).await?.update_name(&new_name, &state.pool).await?;
+  let mut tx = state.pool.begin().await?;
+  let updated_meal = Meal::get_by_id(meal_id, &mut tx).await?.update_name(&new_name, &mut tx).await?;
+  tx.commit().await?;
   Ok(updated_meal)
 }
 
 #[tauri::command]
 async fn update_log_standalone(log: DailyLog, state: State<'_, AppState>) -> Result<DailyLog, Error> {
-  let updated_log = log.update(&state.pool).await?;
+  let mut tx = state.pool.begin().await?;
+  let updated_log = log.update(&mut tx).await?;
+  tx.commit().await?;
   Ok(updated_log)
 }
 

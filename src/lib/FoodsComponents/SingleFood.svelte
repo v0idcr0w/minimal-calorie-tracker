@@ -104,23 +104,23 @@
 		<div class="grid grid-cols-3 items-center gap-2">
 			<!-- ? SERVING SIZE -->
 			<Label for="serving{foodNormalized.id}" class="text-right">Serving Size</Label>
-			<Input id="serving{foodNormalized.id}" type="number" bind:value={foodNormalized.serving_size} readonly={!editable} class={editable ? "bg-white" : "bg-gray-50"}/>
-			<Input id="units{foodNormalized.id}" type="text" bind:value={foodNormalized.unit} readonly={!editable} class={editable ? "bg-white" : "bg-gray-50"}/>
+			<Input id="serving{foodNormalized.id}" type="number" bind:value={foodNormalized.serving_size} readonly={!editable} class={editable ? 'bg-background' : 'bg-muted/60'}/>
+			<Input id="units{foodNormalized.id}" type="text" bind:value={foodNormalized.unit} readonly={!editable} class={editable ? 'bg-background' : 'bg-muted/60'}/>
 			<!-- ? CALORIES -->
 			<Label for="cal{foodNormalized.id}" class="text-right">Calories</Label>
-			<Input id="cal{foodNormalized.id}" type="number" bind:value={foodNormalized.normalized_calories} readonly={!editable} class={editable ? "bg-white" : "bg-gray-50"}/>
+			<Input id="cal{foodNormalized.id}" type="number" bind:value={foodNormalized.normalized_calories} readonly={!editable} class={editable ? 'bg-background' : 'bg-muted/60'}/>
 			<Label class="text-left">kcal</Label>
 			<!-- ? PROTEIN -->
 			<Label for="pro{foodNormalized.id}" class="text-right">Protein</Label>
-			<Input id="pro{foodNormalized.id}" type="number" bind:value={foodNormalized.normalized_protein} class={editable ? "bg-white" : "bg-gray-50"} readonly={!editable}/>
+			<Input id="pro{foodNormalized.id}" type="number" bind:value={foodNormalized.normalized_protein} class={editable ? 'bg-background' : 'bg-muted/60'} readonly={!editable}/>
 			<Label class="text-left">g</Label>
 			<!-- ? CARBS -->
 			<Label for="carb{foodNormalized.id}" class="text-right">Carbohydrate</Label>
-			<Input id="carb{foodNormalized.id}" type="number" bind:value={foodNormalized.normalized_carbohydrate} readonly={!editable} class={editable ? "bg-white" : "bg-gray-50"} />
+			<Input id="carb{foodNormalized.id}" type="number" bind:value={foodNormalized.normalized_carbohydrate} readonly={!editable} class={editable ? 'bg-background' : 'bg-muted/60'} />
 			<Label class="text-left">g</Label>
 			<!-- ? TOTAL FAT -->
 			<Label for="fat{foodNormalized.id}" class="text-right">Total Fat</Label>
-			<Input id="fat{foodNormalized.id}" type="number" bind:value={foodNormalized.normalized_fat} readonly={!editable} class={editable ? "bg-white" : "bg-gray-50"}/>
+			<Input id="fat{foodNormalized.id}" type="number" bind:value={foodNormalized.normalized_fat} readonly={!editable} class={editable ? 'bg-background' : 'bg-muted/60'}/>
 			<Label class="text-left">g</Label>
 		</div>
 	</Card.Content>

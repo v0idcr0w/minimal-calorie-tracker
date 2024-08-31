@@ -1,4 +1,4 @@
-use sqlx::{FromRow, SqlitePool, types::chrono::NaiveDate, Type}; 
+use sqlx::{types::chrono::NaiveDate, FromRow, Sqlite, SqlitePool, Transaction, Type}; 
 use serde::{Serialize, Deserialize};
 use super::macros_total::MacrosTotal;
 
@@ -32,7 +32,7 @@ impl DailyLog {
         self.total_calories = macros.calories; 
         self 
     }
-    pub async fn create(self, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn create<'a>(self, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let log = sqlx::query_as("INSERT INTO daily_logs (weight, total_protein, total_carbohydrate, total_fat, total_calories, entry_date) VALUES (?, ?, ?, ?, ?, ?) RETURNING *")
         .bind(self.weight)
         .bind(self.total_protein)
@@ -40,22 +40,22 @@ impl DailyLog {
         .bind(self.total_fat)
         .bind(self.total_calories)
         .bind(self.entry_date)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await; 
 
         log
     }
-    pub async fn update_weight(self, new_weight: f64, new_units: WeightUnits, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn update_weight<'a>(self, new_weight: f64, new_units: WeightUnits, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let updated_log = sqlx::query_as("UPDATE daily_logs SET weight = ?, units = ? WHERE id = ? RETURNING *")
         .bind(new_weight)
         .bind(new_units)
         .bind(self.id)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await;
 
         updated_log
     }
-    pub async fn update(self, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn update<'a>(self, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let updated_log = sqlx::query_as("UPDATE daily_logs SET weight = ?, total_protein = ?, total_carbohydrate = ?, total_fat = ?, total_calories = ? WHERE id = ? RETURNING *")
         .bind(self.weight)
         .bind(self.total_protein)
@@ -63,7 +63,7 @@ impl DailyLog {
         .bind(self.total_fat)
         .bind(self.total_calories)
         .bind(self.id)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await;
 
         updated_log
@@ -72,10 +72,10 @@ impl DailyLog {
         let _ = sqlx::query("DELETE FROM daily_logs WHERE id = ?").bind(self.id).execute(db).await?;
         Ok(())
     }
-    pub async fn get_by_id(id: i32, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn get_by_id<'a>(id: i32, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let logs = sqlx::query_as::<_, Self>("SELECT * FROM daily_logs WHERE id = ?")
         .bind(id)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await?;
     Ok(logs)
     }
@@ -87,10 +87,10 @@ impl DailyLog {
         Ok(logs_list)
     }
 
-    pub async fn get_by_date(date: NaiveDate, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn get_by_date<'a>(date: NaiveDate, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let log = sqlx::query_as::<_, Self>("SELECT * FROM daily_logs WHERE entry_date = ?")
         .bind(date)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await?;
         Ok(log) 
     }

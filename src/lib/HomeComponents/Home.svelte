@@ -107,12 +107,12 @@
 		</Card.Header>
 		<Card.Content>
 			<div class="grid grid-cols-3 gap-4 w-1/2 mx-auto">
-				<Input type="number" class="col-span-2" bind:value={newWeight} disabled={!newWeightEditable} />
+				<Input type="number" class="col-span-2 {newWeightEditable ? 'bg-background' : 'bg-muted/60'}" bind:value={newWeight} readonly={!newWeightEditable} />
 				<Select.Root bind:selected={newUnits} disabled={!newWeightEditable}>
-					<Select.Trigger>
+					<Select.Trigger class="{newWeightEditable ? 'bg-background' : 'bg-muted/60'} " >
 						<Select.Value placeholder={displayedUnits??'Units'}/>
 					</Select.Trigger>
-					<Select.Content>
+					<Select.Content >
 						<Select.Item value="Kg" label="kg"/>
 						<Select.Item value="Lbs" label="lbs"/>
 					</Select.Content>
@@ -148,19 +148,19 @@
 		<Card.Content>
 			<div class="grid grid-cols-6 gap-4">
 				<Label class="text-right">Weight</Label>
-				<Input type="number" bind:value={newUserGoal.weight} disabled={!goalsEditable}/>
+				<Input type="number" bind:value={newUserGoal.weight} readonly={!goalsEditable} class="{goalsEditable ? 'bg-background' : 'bg-muted/60'}"/>
 
 				<Label class="text-right">Daily Calories<br/>(kcal)</Label>
-				<Input type="number" class="col-span-3" disabled={!goalsEditable} bind:value={newUserGoal.calories}/>
+				<Input type="number" readonly={!goalsEditable} bind:value={newUserGoal.calories} class="col-span-3 {goalsEditable ? 'bg-background' : 'bg-muted/60'}"/>
 
 				<Label class="text-right">Protein<br/>(g)</Label>
-				<Input type="number" disabled={!goalsEditable} bind:value={newUserGoal.protein}/>
+				<Input type="number" readonly={!goalsEditable} bind:value={newUserGoal.protein} class="{goalsEditable ? 'bg-background' : 'bg-muted/60'}"/>
 				
 				<Label class="text-right">Carbohydrate<br/>(g)</Label>
-				<Input type="number" disabled={!goalsEditable} bind:value={newUserGoal.carbohydrate}/>
+				<Input type="number" class="{goalsEditable ? 'bg-background' : 'bg-muted/60'}" readonly={!goalsEditable} bind:value={newUserGoal.carbohydrate}/>
 				
 				<Label class="text-right">Total Fat<br/>(g)</Label>
-				<Input type="number" disabled={!goalsEditable} bind:value={newUserGoal.fat}/>
+				<Input type="number" class="{goalsEditable ? 'bg-background' : 'bg-muted/60'}" readonly={!goalsEditable} bind:value={newUserGoal.fat}/>
 			</div>
 			<div class="flex justify-between mt-4">
 				<Button variant="secondary" on:click={() => cancelUpdateGoal()}>

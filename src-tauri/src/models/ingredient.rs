@@ -1,4 +1,4 @@
-use sqlx::{FromRow, Sqlite, SqlitePool}; 
+use sqlx::{FromRow, SqlitePool, Sqlite, Transaction}; 
 use serde::{Serialize, Deserialize};
 use super::{food_normalized::FoodNormalized, macros_total::MacrosTotal};
 
@@ -40,7 +40,7 @@ impl Ingredient {
         // converts the ingredient into a MacrosTotal instance 
         MacrosTotal::new(self.protein, self.carbohydrate, self.fat, self.calories)
     }
-    pub async fn create(self, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn create<'a>(self, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let ingredient = sqlx::query_as("INSERT INTO ingredients (recipe_id, food_normalized_id, name, amount, unit, protein, carbohydrate, fat, calories) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *")
         .bind(self.recipe_id)
         .bind(self.food_normalized_id)
@@ -51,12 +51,12 @@ impl Ingredient {
         .bind(self.carbohydrate)
         .bind(self.fat)
         .bind(self.calories)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await; 
 
         ingredient
     }
-    pub async fn update(self, new_amount: f64, as_food_normalized: FoodNormalized, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn update<'a>(self, new_amount: f64, as_food_normalized: FoodNormalized, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let baseline_amount = as_food_normalized.serving_size;
          
         let new_ingredient = sqlx::query_as("UPDATE ingredients SET amount = ?, protein = ?, carbohydrate = ?, fat = ?, calories = ? WHERE id = ? RETURNING *")
@@ -66,12 +66,12 @@ impl Ingredient {
         .bind(as_food_normalized.normalized_fat * new_amount / baseline_amount)
         .bind(as_food_normalized.normalized_calories * new_amount / baseline_amount)
         .bind(self.id)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await;
         new_ingredient
     }
-    pub async fn delete(self, db: &SqlitePool) -> Result<(), sqlx::Error> {
-        let _ = sqlx::query("DELETE FROM ingredients WHERE id = ?").bind(self.id).execute(db).await?;
+    pub async fn delete<'a>(self, tx: &mut Transaction<'a, Sqlite>) -> Result<(), sqlx::Error> {
+        let _ = sqlx::query("DELETE FROM ingredients WHERE id = ?").bind(self.id).execute(&mut **tx).await?;
         Ok(())
     }
     pub async fn get_by_id(id: i32, db: &SqlitePool) -> Result<Self, sqlx::Error> {

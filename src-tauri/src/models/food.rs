@@ -1,4 +1,4 @@
-use sqlx::{FromRow, SqlitePool}; 
+use sqlx::{FromRow, SqlitePool, Sqlite, Transaction}; 
 use serde::{Serialize, Deserialize}; 
 use super::{food_normalized::FoodNormalized, recipe::Recipe}; 
 #[derive(Debug, Serialize, Deserialize, PartialEq, FromRow)] 
@@ -50,7 +50,7 @@ impl Food {
             calories: recipe.calories * multiplier 
         } 
     }
-    pub async fn create(self, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn create<'a>(self, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let food: Result<Self, _> = sqlx::query_as("INSERT INTO foods (food_normalized_id, recipe_id, meal_id, name, unit, amount, protein, carbohydrate, fat, calories) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *")
         .bind(self.food_normalized_id)
         .bind(self.recipe_id)
@@ -62,7 +62,7 @@ impl Food {
         .bind(self.carbohydrate)
         .bind(self.fat)
         .bind(self.calories)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await;
         food
     }

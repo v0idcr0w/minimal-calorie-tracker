@@ -1,4 +1,4 @@
-use sqlx::{FromRow, SqlitePool}; 
+use sqlx::{FromRow, SqlitePool, Sqlite, Transaction}; 
 use serde::{Serialize, Deserialize};
 use super::macros_total::MacrosTotal;
 
@@ -54,7 +54,7 @@ impl Recipe {
         
         self 
     }
-    pub async fn update(self, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn update<'a>(self, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let updated_recipe = sqlx::query_as("UPDATE recipes SET name = ?, serving_size = ?, unit = ?, protein = ?, carbohydrate = ?, fat = ?, calories = ? WHERE id = ? RETURNING *")
         .bind(self.name.to_lowercase())
         .bind(self.serving_size)
@@ -64,19 +64,19 @@ impl Recipe {
         .bind(self.fat)
         .bind(self.calories)
         .bind(self.id)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await;
 
         updated_recipe
     }
-    pub async fn delete(self, db: &SqlitePool) -> Result<(), sqlx::Error> {
-        let _ = sqlx::query("DELETE FROM recipes WHERE id = ?").bind(self.id).execute(db).await?;
+    pub async fn delete<'a>(self, tx: &mut Transaction<'a, Sqlite>) -> Result<(), sqlx::Error> {
+        let _ = sqlx::query("DELETE FROM recipes WHERE id = ?").bind(self.id).execute(&mut **tx).await?;
         Ok(())
     }
-    pub async fn get_by_id(id: i32, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn get_by_id<'a>(id: i32, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let recipe = sqlx::query_as::<_, Self>("SELECT * FROM recipes WHERE id = ?")
         .bind(id)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await?;
         Ok(recipe)
     }

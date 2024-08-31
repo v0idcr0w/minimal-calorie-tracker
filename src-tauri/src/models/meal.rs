@@ -1,5 +1,5 @@
 use chrono::{NaiveDateTime, NaiveDate};
-use sqlx::{FromRow, SqlitePool}; 
+use sqlx::{FromRow, SqlitePool, Sqlite, Transaction}; 
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, FromRow)] 
@@ -28,27 +28,27 @@ impl Meal {
 
         meal
     }
-    pub async fn update_name(self, new_name: &str, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn update_name<'a>(self, new_name: &str, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let updated_meal = sqlx::query_as("UPDATE meals SET name = ? WHERE id = ? RETURNING *")
         .bind(new_name)
         .bind(self.id)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await; 
         updated_meal 
     }
-    pub async fn update_constant_status(self, new_status: bool, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn update_constant_status<'a>(self, new_status: bool, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let updated_meal = sqlx::query_as("UPDATE meals SET is_constant = ? WHERE id = ? RETURNING *")
         .bind(new_status)
         .bind(self.id)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await; 
         updated_meal 
     }
-    pub async fn update_disabled_status(self, new_status: bool, db: &SqlitePool) -> Result<Self, sqlx::Error> {
+    pub async fn update_disabled_status<'a>(self, new_status: bool, tx: &mut Transaction<'a, Sqlite>) -> Result<Self, sqlx::Error> {
         let updated_meal = sqlx::query_as("UPDATE meals SET is_disabled = ? WHERE id = ? RETURNING *")
         .bind(new_status)
         .bind(self.id)
-        .fetch_one(db)
+        .fetch_one(&mut **tx)
         .await; 
         updated_meal 
     }
@@ -56,10 +56,10 @@ impl Meal {
         let _ = sqlx::query("DELETE FROM meals WHERE id = ?").bind(self.id).execute(db).await?;
         Ok(())
     }
-    pub async fn get_by_id(pk: i32, pool: &SqlitePool) ->  Result<Self, sqlx::Error> {
+    pub async fn get_by_id<'a>(pk: i32, tx: &mut Transaction<'a, Sqlite>) ->  Result<Self, sqlx::Error> {
         let meal = sqlx::query_as::<_, Meal>("SELECT * FROM meals WHERE id = ?")
         .bind(pk)
-        .fetch_one(pool)
+        .fetch_one(&mut **tx)
         .await?; 
 
         Ok(meal)
