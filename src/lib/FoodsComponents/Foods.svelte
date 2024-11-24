@@ -68,33 +68,32 @@
 		};
 	}
 
-	function validateNewFood() {
+	function validateWithDefaults() {
 		if (!newFood.name.trim()) {
-			validationError.name = $_('error.noFoodName');
+			newFood.name = "Unnamed"
 		}
 		if (!validateNumber(newFood.serving_size)) {
-			validationError.serving_size = $_('error.invalidServingSize');
+			newFood.serving_size = 100; 
 		}
 		if (!newFood.unit) {
-			validationError.unit = $_('error.noUnit');
+			newFood.unit = "g";
 		}
 		if (!validateNumber(newFood.normalized_protein)) {
-			validationError.normalized_protein = $_('error.negativeAmount');
+			newFood.normalized_protein = 0;
 		}
 		if (!validateNumber(newFood.normalized_carbohydrate)) {
-			validationError.normalized_carbohydrate = $_('error.negativeAmount');
+			newFood.normalized_carbohydrate = 0;
 		}
 		if (!validateNumber(newFood.normalized_fat)) {
-			validationError.normalized_fat =  $_('error.negativeAmount');
+			newFood.normalized_fat = 0; 
 		}
 		if (!validateNumber(newFood.normalized_calories)) {
-			validationError.normalized_calories = $_('error.negativeCalories');
+			newFood.normalized_calories = 0; 
 		}
-		return Object.keys(validationError).length === 0;
 	}
 
 	async function addFood() {
-		if (!validateNewFood()) return;
+		validateWithDefaults();
 		try {
 			const addedFood = await invoke('add_new_food_normalized', { 
 				newFood: {
@@ -152,12 +151,6 @@
 						<Input type="number" id="fat" class="col-span-1" bind:value={newFood.normalized_fat} />
 					</div>
 				  </div>
-				  {#if Object.keys(validationError).length > 0}
-				  <!-- TODO: PLACE EACH ERROR BENEATH EACH TYPE OF INPUT :) -->
-				  <div class="flex justify-center">
-						<p class="text-red-500 text-sm">Validation Error</p>
-				  </div>
-				  {/if}
 				  <Dialog.Footer>
 					<Button type="submit" on:click={addFood}>Confirm</Button>
 					<Dialog.Close>

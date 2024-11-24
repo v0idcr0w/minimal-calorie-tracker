@@ -30,12 +30,12 @@
 
 	let newWeightEditable = false; 
 	let newWeight = null; 
-	let newUnits = null; 
+	let newUnits = {value: 'Kg', label: 'kg', disabled: false}; // Default 
 	let displayedUnits = ''; 
 	let goalsEditable = false; 
 	let todaysLog = {};
 	let newUserGoal = {};
-
+	
 	async function getOrCreateTodaysLog() {
 		todaysLog = await invoke('get_todays_log');
 		logId.set(todaysLog.id);

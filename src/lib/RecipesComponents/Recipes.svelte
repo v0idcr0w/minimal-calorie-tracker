@@ -39,7 +39,7 @@
 	async function addRecipe() {
 		try {
 			const addedRecipe = await invoke('create_new_recipe', {
-			name: newRecipe.name,
+			name: newRecipe.name ? newRecipe.name : 'Untitled',
 			servingSize: Number(newRecipe.serving_size),
 			unit: newRecipe.unit
 			});

@@ -55,6 +55,7 @@
 	async function addNewMeal() {
 		// to make it compatible with Rust NaiveDateTime, remove the last character that represents the timezone.
 		newMeal.entry_timestamp = $today.toISOString().slice(0, 23);
+		newMeal.name = newMeal.name ? newMeal.name : 'Untitled';
 		try {
 			await invoke('add_new_meal', { newMeal });
 			await refreshMeals();

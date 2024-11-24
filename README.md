@@ -24,7 +24,7 @@ Huge thanks to the following sources, because the design of this app would be te
 - Lucide Svelte (Icons Library)
 
 
-### Updates TODO
+### TODO
 - [x] Foods Tab
 - [x] Recipes Tab
 - [x] Meals Tab
@@ -32,5 +32,6 @@ Huge thanks to the following sources, because the design of this app would be te
 - [x] Logs Tab
 - [x] Home Tab 
 - [x] Navigation Bar (Copy the Code from Shadcn-Svelte "Blocks")
-- [ ] Charts Tab
-- [ ] Theming
+- [x] Charts Tab
+- [x] Theming
+- [ ] Finish Translation
