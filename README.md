@@ -16,6 +16,7 @@ If you enjoy the app please consider supporting me:
 - In the Logs tab, you can see your progress in a tabular format and edit the contents of the other days, if for some reason you forgot to enter one of your meals into the app
 
 ### Differences vs. typical calorie trackers 
+- No need for an internet connection (works offline) 
 - Currently desktop only
 - No bar code scanner (it is a premium feature in most apps)
 - No algorithmic predictions (you must decide for yourself how to alter your caloric intake based on how your weight is trending) 
